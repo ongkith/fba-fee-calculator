@@ -3,930 +3,1377 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>FBA Fee Calculator (Auto v2)</title>
+  <title>Amazon FBA Fee Calculator — Auto v3 (Exact Tiers)</title>
   <style>
-    :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
-    body { margin: 0; background:#f6f7fb; color:#111; }
-    .wrap { max-width: 980px; margin: 0 auto; padding: 20px; }
-    .card { background: #fff; border: 1px solid #e6e8f0; border-radius: 12px; padding: 16px; margin: 12px 0; }
-    h1 { font-size: 20px; margin: 0 0 10px; }
-    h2 { font-size: 16px; margin: 0 0 10px; }
-    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
-    label { display:block; font-size: 12px; color:#333; margin-bottom: 6px; }
-    input, select, textarea {
-      width: 100%; box-sizing: border-box;
-      padding: 10px; border-radius: 10px; border: 1px solid #d7dbea;
-      font-size: 14px; background: #fff;
+    :root{
+      --bg0:#0b1020;
+      --bg1:#0f1730;
+      --card: rgba(255,255,255,0.08);
+      --card2: rgba(255,255,255,0.06);
+      --stroke: rgba(255,255,255,0.12);
+      --stroke2: rgba(255,255,255,0.18);
+      --text:#eef2ff;
+      --muted: rgba(238,242,255,0.72);
+      --muted2: rgba(238,242,255,0.58);
+      --good:#4ce39b;
+      --warn:#ffb34d;
+      --bad:#ff6b6b;
+      --accent:#8aa4ff;
+      --accent2:#b68cff;
+      --shadow: 0 20px 60px rgba(0,0,0,0.35);
+      --shadow2: 0 10px 30px rgba(0,0,0,0.25);
+      --radius: 16px;
+      --radius2: 14px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+      --sans: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
     }
-    textarea { min-height: 84px; resize: vertical; }
-    .row { display:flex; gap: 10px; align-items: end; flex-wrap: wrap; }
-    button {
-      border: 0; border-radius: 10px; padding: 10px 14px;
-      background: #111; color: #fff; cursor: pointer; font-weight: 600;
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: var(--sans);
+      color: var(--text);
+      background:
+        radial-gradient(1200px 700px at 20% -10%, rgba(138,164,255,0.35), transparent 55%),
+        radial-gradient(900px 600px at 90% 0%, rgba(182,140,255,0.28), transparent 55%),
+        radial-gradient(1200px 800px at 50% 110%, rgba(76,227,155,0.18), transparent 55%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
+      min-height:100vh;
     }
-    button.secondary { background: #eef1ff; color:#111; }
-    .muted { color:#666; font-size: 12px; line-height: 1.4; }
-    .result { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; white-space: pre-wrap; }
-    .pill { display:inline-block; padding: 2px 8px; border-radius: 999px; background:#eef1ff; font-size:12px; margin-left: 6px; }
-    .badge {
-      display:inline-block; padding: 6px 10px; border-radius: 999px;
-      background:#111; color:#fff; font-size: 12px; font-weight: 700;
-      line-height: 1;
+    .wrap{max-width:1120px;margin:0 auto;padding:24px 16px 52px;}
+    .topbar{
+      display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;
+      margin-bottom:14px;
     }
-    .badge.secondary { background:#eef1ff; color:#111; border: 1px solid #d7dbea; }
-    .warn { color:#9a4b00; }
-    .ok { color:#0f6b2c; }
+    .brand{
+      display:flex;flex-direction:column;gap:8px;
+    }
+    .title{
+      display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+      font-size:20px;font-weight:900;letter-spacing:0.2px;margin:0;
+    }
+    .pill{
+      font-size:12px;font-weight:800;
+      padding:4px 10px;border-radius:999px;
+      background: linear-gradient(135deg, rgba(138,164,255,0.28), rgba(182,140,255,0.22));
+      border:1px solid var(--stroke);
+      color: var(--text);
+    }
+    .sub{
+      color: var(--muted);
+      font-size:12px;line-height:1.45;
+      max-width: 880px;
+    }
+    .actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .btn{
+      appearance:none;border:1px solid var(--stroke);
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      padding:10px 12px;border-radius:12px;
+      font-weight:800;font-size:12px;
+      cursor:pointer;
+      box-shadow: var(--shadow2);
+      transition: transform .06s ease, border-color .2s ease, background .2s ease;
+      user-select:none;
+    }
+    .btn:hover{border-color: var(--stroke2); background: rgba(255,255,255,0.08);}
+    .btn:active{transform: translateY(1px);}
+    .btn.primary{
+      border:0;
+      background: linear-gradient(135deg, rgba(138,164,255,0.95), rgba(182,140,255,0.95));
+      color:#0b1020;
+      box-shadow: 0 14px 40px rgba(138,164,255,0.25);
+    }
+    .btn.ghost{
+      background: transparent;
+      border: 1px solid var(--stroke);
+      box-shadow:none;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap:14px;
+      margin-top: 14px;
+    }
+    @media (max-width: 980px){ .grid{grid-template-columns: 1fr;} }
+
+    .card{
+      border:1px solid var(--stroke);
+      background: linear-gradient(180deg, var(--card), var(--card2));
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .card .head{
+      padding:14px 14px 10px;
+      border-bottom:1px solid var(--stroke);
+      display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+      background: rgba(255,255,255,0.03);
+    }
+    .card .head h2{
+      margin:0;font-size:13px;letter-spacing:0.2px;text-transform:uppercase;
+      color: var(--muted);
+      font-weight:900;
+    }
+    .card .body{padding:14px;}
+    .two{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+    .three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+    @media (max-width: 720px){ .two,.three{grid-template-columns:1fr;} }
+
+    label{display:block;font-size:12px;font-weight:800;color: var(--muted);margin-bottom:6px;}
+    input, select, textarea{
+      width:100%;
+      padding:11px 12px;
+      border-radius: 14px;
+      border: 1px solid var(--stroke);
+      background: rgba(10,15,30,0.35);
+      color: var(--text);
+      outline: none;
+      font-size:14px;
+      transition: border-color .2s ease, transform .06s ease, background .2s ease;
+    }
+    input::placeholder, textarea::placeholder{color: rgba(238,242,255,0.35)}
+    input:focus, select:focus, textarea:focus{border-color: rgba(138,164,255,0.65); background: rgba(10,15,30,0.5);}
+    textarea{min-height:110px;resize: vertical; font-family: var(--mono); font-size:12.5px; line-height:1.35;}
+    .hint{color: var(--muted2); font-size:12px; line-height:1.35; margin-top:6px;}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+    .kpis{
+      display:flex;gap:10px;flex-wrap:wrap;align-items:center;
+    }
+    .badge{
+      display:inline-flex;align-items:center;gap:8px;
+      padding:8px 12px;border-radius:999px;
+      border:1px solid var(--stroke);
+      background: rgba(255,255,255,0.06);
+      font-size:12px;font-weight:900;
+      white-space:nowrap;
+    }
+    .badge .dot{width:8px;height:8px;border-radius:999px;background: var(--muted2);}
+    .badge.good .dot{background: var(--good);}
+    .badge.warn .dot{background: var(--warn);}
+    .badge.bad .dot{background: var(--bad);}
+    .mini{
+      font-size:11px;
+      color: var(--muted2);
+      font-weight:800;
+    }
+    .divider{height:1px;background: var(--stroke); margin:12px 0;}
+    .result{
+      font-family: var(--mono);
+      font-size: 12.7px;
+      line-height: 1.45;
+      white-space: pre-wrap;
+      background: rgba(10,15,30,0.35);
+      border: 1px solid var(--stroke);
+      border-radius: 14px;
+      padding: 12px;
+      overflow:auto;
+      min-height: 230px;
+    }
+    .tinyNote{
+      font-size:11px;color: var(--muted2);line-height:1.35;margin-top:10px;
+    }
+    .footerNote{
+      margin-top:14px;
+      color: rgba(238,242,255,0.45);
+      font-size:11px; line-height:1.4;
+    }
   </style>
 </head>
 
 <body>
-<div class="wrap">
-  <div class="card">
-    <h1>Amazon FBA Fee Calculator <span class="pill">Auto v2</span></h1>
-    <div class="muted">
-      Auto-detects Size Tier using dimensions + weight. Applies your rules:
-      <b>DIM divisor 139</b>, min width/height 2" for Large Standard/Bulky/XL (up to 150 lb),
-      Small Standard & XL 150+ use unit weight only. Flags Overmax (no surcharge applied).
-    </div>
-  </div>
-
-  <div class="card">
-    <h2>Inputs</h2>
-
-    <div class="grid">
-      <div>
-        <label>ASIN (optional)</label>
-        <input id="asin" placeholder="e.g., B0XXXXXXX" />
-      </div>
-      <div>
-        <label>Selling Price (USD)</label>
-        <input id="price" type="number" step="0.01" placeholder="e.g., 24.99" />
-      </div>
-    </div>
-
-    <div class="grid">
-      <div>
-        <label>Season</label>
-        <select id="season">
-          <option value="nonpeak_2026" selected>Non-Peak (Starting Jan 15, 2026)</option>
-          <option value="peak_2025">Peak (Oct 15, 2025 – Jan 14, 2026)</option>
-        </select>
-      </div>
-      <div>
-        <label>Product Type</label>
-        <select id="ptype">
-          <option value="nonapparel" selected>Excluding apparel (Non-Apparel)</option>
-          <option value="apparel">Apparel</option>
-          <option value="danger">Dangerous goods (Hazmat)</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="grid">
-      <div>
-        <label>Detected Size Tier</label>
-        <div class="row" style="align-items:center;">
-          <span id="tierBadge" class="badge secondary">—</span>
-          <span class="muted" id="tierHint">Enter dimensions + weight to auto-detect.</span>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="brand">
+        <div class="title">
+          Amazon FBA Fee Calculator <span class="pill">Auto v3 • Exact tier rules</span>
         </div>
-        <div class="muted warn" style="margin-top:6px;">
-          Tip: Better accuracy requires official “Product size tiers” thresholds. This v2 uses practical US heuristics.
+        <div class="sub">
+          Paste the inputs you already have: <b>Price</b>, <b>Weight (lb)</b>, <b>Dimensions (in)</b>.
+          This build uses the tier definitions you pasted (2024 defs through Jan 14, 2026 + 2026 defs starting Jan 15, 2026),
+          DIM divisor <b>139</b>, and fee-weight rules (Small Standard + XL 150+ use unit only; others use max(unit, dim) with 2" min W/H).
+          Overmax is flagged (no surcharge applied).
         </div>
       </div>
 
-      <div>
-        <label>Weight</label>
-        <div class="row">
-          <div style="flex:1; min-width: 160px;">
-            <label style="margin:0 0 6px;">Pounds (lb)</label>
-            <input id="lb" type="number" step="0.01" placeholder="e.g., 0.38" />
-          </div>
-          <div style="flex:1; min-width: 160px;">
-            <label style="margin:0 0 6px;">Ounces (oz) (optional)</label>
-            <input id="oz" type="number" step="0.01" placeholder="e.g., 6.08" />
+      <div class="actions">
+        <button class="btn ghost" id="btnClear">Clear</button>
+        <button class="btn" id="btnExample">Load Example</button>
+        <button class="btn primary" id="btnCalcTop">Calculate</button>
+      </div>
+    </div>
+
+    <div class="grid">
+      <!-- LEFT: INPUTS -->
+      <div class="card">
+        <div class="head">
+          <h2>Inputs</h2>
+          <div class="kpis">
+            <span class="badge" id="tierBadge"><span class="dot"></span><span id="tierText">Tier: —</span></span>
+            <span class="badge" id="weightBadge"><span class="dot"></span><span id="weightText">Used weight: —</span></span>
           </div>
         </div>
-        <div class="muted" style="margin-top:6px;">
-          If you fill both, it adds them (1 lb = 16 oz).
+        <div class="body">
+          <div class="two">
+            <div>
+              <label>ASIN (optional)</label>
+              <input id="asin" placeholder="e.g., B0XXXXXXX" />
+            </div>
+            <div>
+              <label>Selling Price (USD)</label>
+              <input id="price" type="number" step="0.01" placeholder="e.g., 15.99" />
+            </div>
+          </div>
+
+          <div style="height:10px"></div>
+
+          <div class="two">
+            <div>
+              <label>Season</label>
+              <select id="season">
+                <option value="nonpeak_2025">Non-Peak (Jan 15, 2025 – Oct 14, 2025)</option>
+                <option value="peak_2025">Peak (Oct 15, 2025 – Jan 14, 2026)</option>
+                <option value="nonpeak_2026" selected>Non-Peak (Starting Jan 15, 2026)</option>
+              </select>
+              <div class="hint">Tier definitions switch on Jan 15, 2026 (Small Bulky introduced).</div>
+            </div>
+
+            <div>
+              <label>Product Type</label>
+              <select id="ptype">
+                <option value="nonapparel" selected>Excluding apparel (Non-Apparel)</option>
+                <option value="apparel">Apparel</option>
+                <option value="danger">Dangerous goods (Hazmat)</option>
+              </select>
+              <div class="hint">Uses the rate cards you pasted.</div>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="two">
+            <div>
+              <label>Shipping Weight (lb) — paste pounds only</label>
+              <input id="lb" type="number" step="0.0001" placeholder="e.g., 0.08" />
+              <div class="hint" id="lbHint">We’ll auto-calc oz + dim weight internally. No manual oz field.</div>
+            </div>
+            <div>
+              <label>Dimensions (inches)</label>
+              <div class="three">
+                <input id="len" type="number" step="0.01" placeholder="Length" />
+                <input id="wid" type="number" step="0.01" placeholder="Width" />
+                <input id="hei" type="number" step="0.01" placeholder="Height" />
+              </div>
+              <div class="hint">We auto-sort into Longest / Median / Shortest. L+G = L + 2(M+S).</div>
+            </div>
+          </div>
+
+          <div style="height:10px"></div>
+
+          <div>
+            <label>Smart Paste (optional) — paste a whole row / block</label>
+            <textarea id="paste" placeholder="Examples you can paste:
+
+Price: 15.99
+Weight: 0.08 lb
+Dims: 10.90 x 6.00 x 0.83 in
+
+OR a messy block like:
+LBS: 0.09
+10.67 x 6.02 x 0.83 in
+$15.99"></textarea>
+
+            <div class="row" style="margin-top:10px;">
+              <button class="btn" id="btnParse">Parse Paste</button>
+              <button class="btn primary" id="btnCalc">Calculate Fees</button>
+              <span class="mini" id="parseStatus"></span>
+            </div>
+            <div class="hint">Parser grabs the first price, first weight, and first “x x x” dimension triple it can find.</div>
+          </div>
+
+          <div class="footerNote">
+            This tool calculates <b>Fulfillment fee only</b>. (No referral fee, storage, SIPP, low-inventory fee, etc.)
+          </div>
         </div>
       </div>
-    </div>
 
-    <div class="grid">
-      <div>
-        <label>Dimensions (inches)</label>
-        <div class="grid3">
-          <input id="len" type="number" step="0.01" placeholder="Length" />
-          <input id="wid" type="number" step="0.01" placeholder="Width" />
-          <input id="hei" type="number" step="0.01" placeholder="Height" />
+      <!-- RIGHT: RESULTS -->
+      <div class="card">
+        <div class="head">
+          <h2>Result</h2>
+          <div class="row">
+            <button class="btn" id="btnCopy">Copy</button>
+          </div>
         </div>
-        <div class="muted" style="margin-top:6px;">
-          Used for tier detection + dimensional weight. (DIM weight = L×W×H / 139)
-        </div>
-      </div>
-
-      <div>
-        <label>Smart Paste (optional)</label>
-        <textarea id="paste" placeholder="Paste text like:
-0.38 lbs (0 lbs 6.08 oz)
-Item Weight: 0.09 lbs (0 lbs 1.44 oz)"></textarea>
-        <div class="row" style="margin-top:10px;">
-          <button class="secondary" id="btnParse">Parse Paste</button>
-          <button id="btnCalc">Calculate Fees</button>
-        </div>
-        <div class="muted" style="margin-top:6px;">
-          Parser ignores lines that contain “Item Weight”.
+        <div class="body">
+          <div id="out" class="result">Paste inputs and click “Calculate Fees”.</div>
+          <div class="tinyNote" id="finePrint"></div>
         </div>
       </div>
     </div>
   </div>
-
-  <div class="card">
-    <h2>Result</h2>
-    <div id="out" class="result">Enter inputs and click “Calculate Fees”.</div>
-  </div>
-</div>
 
 <script>
-  // =========================
-  // Core helpers
-  // =========================
-  function toNumber(v) {
-    const n = Number(v);
-    return Number.isFinite(n) ? n : 0;
+/* =========================================================
+   Core helpers
+========================================================= */
+function toNumber(v){ const n = Number(v); return Number.isFinite(n) ? n : 0; }
+function money(n){ return `$${Number(n).toFixed(2)}`; }
+function getPriceBand(price){
+  if (price < 10) return "lt10";
+  if (price <= 50) return "b10_50";
+  return "gt50";
+}
+function bandLabel(b){ return b==="lt10" ? "<$10" : (b==="b10_50" ? "$10–$50" : ">$50"); }
+
+function sortDimsDesc(len, wid, hei){
+  const d = [len, wid, hei].map(Number).sort((a,b)=>b-a);
+  return { L: d[0], M: d[1], S: d[2] };
+}
+function lengthPlusGirth(L,M,S){ return L + 2*(M + S); }
+
+/* DIM weight per your paste:
+   - DIM = L*W*H/139
+   - For Large standard, Small Bulky, Large Bulky, Overmax, XL (up to 150), assume min W/H = 2"
+*/
+function dimWeightLb(len, wid, hei, applyMin2){
+  if (!(len>0 && wid>0 && hei>0)) return 0;
+  let L=len, W=wid, H=hei;
+  if (applyMin2){
+    // We apply min-2 to the smaller sides conceptually; safest: enforce on width/height fields.
+    W = Math.max(W, 2);
+    H = Math.max(H, 2);
+  }
+  return (L*W*H)/139;
+}
+
+/* =========================================================
+   Exact tier detection from your pasted definitions
+   - 2024 defs (ending Jan 14, 2026): Small Standard, Large Standard, Large Bulky, XL bands
+   - 2026 defs (starting Jan 15, 2026): Small Standard, Large Standard, Small Bulky, Large Bulky, XL bands
+   - Shipping weight for determining tier = max(unit, dim) (min2 for oversize dim calc)
+========================================================= */
+function shippingWeightForTier(unitLb, len, wid, hei){
+  const hasDims = (len>0 && wid>0 && hei>0);
+  if (!hasDims) return { shipLb: unitLb, dimLb: 0, usedMin2:false };
+
+  const {L,M,S} = sortDimsDesc(len, wid, hei);
+  const lpg = lengthPlusGirth(L,M,S);
+
+  // Determine whether to apply min2 for DIM when determining tier:
+  // If it's outside standard envelopes, treat as oversize-ish => apply min2.
+  const outsideStandard = (L>18 || M>14 || S>8 || lpg>130);
+  const dimLb = dimWeightLb(len, wid, hei, outsideStandard);
+  return { shipLb: Math.max(unitLb, dimLb), dimLb, usedMin2: outsideStandard };
+}
+
+function detectTierExact(seasonKey, unitLb, len, wid, hei){
+  const hasDims = (len>0 && wid>0 && hei>0);
+  if (!hasDims){
+    return { key:"large_standard", label:"Large standard (fallback)", reason:"Missing dimensions → assumed Large standard" };
   }
 
-  function getPriceBand(price) {
-    if (price < 10) return "lt10";
-    if (price <= 50) return "b10_50";
-    return "gt50";
+  const {L,M,S} = sortDimsDesc(len, wid, hei);
+  const lpg = lengthPlusGirth(L,M,S);
+  const unitOz = unitLb * 16;
+
+  // Small Standard (criteria uses UNIT weight <= 16 oz)
+  if (unitOz <= 16 && L<=15 && M<=12 && S<=0.75){
+    return { key:"small_standard", label:"Small standard", reason:"Meets Small Standard thresholds (unit wt + dims)" };
   }
 
-  function totalWeightLb() {
-    const lb = toNumber(document.getElementById("lb").value);
-    const oz = toNumber(document.getElementById("oz").value);
-    return lb + (oz / 16);
+  // Large Standard (criteria uses shipping weight for tier <= 20 lb)
+  const sw = shippingWeightForTier(unitLb, len, wid, hei);
+  if (sw.shipLb <= 20 && L<=18 && M<=14 && S<=8){
+    return { key:"large_standard", label:"Large standard", reason:"Meets Large Standard thresholds (ship wt + dims)", ship: sw };
   }
 
-  function sortDimsDesc(len, wid, hei) {
-    const dims = [len, wid, hei].map(Number).sort((a,b)=>b-a);
-    return { L: dims[0], W: dims[1], H: dims[2] };
-  }
+  const is2026Defs = (seasonKey === "nonpeak_2026");
 
-  function lengthPlusGirth(L, W, H) {
-    // girth = 2*(W+H)
-    return L + 2*(W+H);
-  }
-
-  // DIM weight rules per your pasted text:
-  // - divisor = 139
-  // - for Large standard, small bulky, large bulky, XL up to 150:
-  //   assume min width and height of 2 inches
-  // - small standard and XL 150+ use unit weight only (no dim compare)
-  function dimensionalWeightLb(len, wid, hei, applyMin2 = false) {
-    if (!(len > 0 && wid > 0 && hei > 0)) return 0;
-    let L = len, W = wid, H = hei;
-    if (applyMin2) {
-      W = Math.max(W, 2);
-      H = Math.max(H, 2);
+  // 2026 Small Bulky
+  if (is2026Defs){
+    if (sw.shipLb <= 50 && L<=37 && M<=28 && S<=20 && lpg<=130){
+      return { key:"small_bulky", label:"Small Bulky", reason:"Meets 2026 Small Bulky thresholds", ship: sw };
     }
-    return (L * W * H) / 139;
   }
 
-  // =========================
-  // Auto tier detection (US heuristics)
-  // =========================
-  // Outputs tier keys matching our fee tables:
-  // small_standard, large_standard, small_bulky, large_bulky, xl_0_50, xl_50_70, xl_70_150, xl_150_plus
-  //
-  // NOTE: Official tier thresholds are in Amazon “Product size tiers”.
-  // This version aims for practical speed + reasonable accuracy.
-  function detectTier(len, wid, hei, unitWeightLb) {
-    if (!(len > 0 && wid > 0 && hei > 0)) {
-      // Without dimensions, we cannot safely classify small standard vs large standard vs bulky.
-      // Best “work fast” fallback: assume large standard (most common).
-      return {
-        key: "large_standard",
-        label: "Large standard (fallback)",
-        reason: "Dimensions missing → assumed Large standard"
-      };
-    }
-
-    const { L, W, H } = sortDimsDesc(len, wid, hei);
-    const lpg = lengthPlusGirth(L, W, H);
-
-    // Standard-size envelope (commonly used in US calculators)
-    const isStandardEnvelope = (L <= 18 && W <= 14 && H <= 8 && unitWeightLb <= 20);
-
-    // Small standard envelope (commonly used)
-    const isSmallStandardEnvelope = (L <= 15 && W <= 12 && H <= 0.75 && unitWeightLb <= 1);
-
-    if (isSmallStandardEnvelope && (unitWeightLb * 16) <= 16) {
-      return { key: "small_standard", label: "Small standard", reason: "Within small-standard envelope" };
-    }
-
-    if (isStandardEnvelope) {
-      return { key: "large_standard", label: "Large standard", reason: "Within standard-size envelope" };
-    }
-
-    // Oversize / bulky / XL
-    // Overmax thresholds from your text:
-    // - XL (up to 150 lb) is Overmax if longest > 96 OR length+girth > 130
-    //
-    // We'll classify:
-    // - <=50 lb: bulky (small vs large by longest/length+girth)
-    // - 50–70, 70–150, 150+: XL bands
-    //
-    // Bulky split heuristic:
-    // - If longest <= 60 and length+girth <= 130 -> small_bulky
-    // - Else (still <=50 lb) -> large_bulky
-    if (unitWeightLb <= 50) {
-      if (L <= 60 && lpg <= 130) {
-        return { key: "small_bulky", label: "Small Bulky", reason: "Oversize but within smaller bulky envelope" };
-      }
-      return { key: "large_bulky", label: "Large Bulky", reason: "Oversize → treated as Large Bulky" };
-    }
-
-    if (unitWeightLb <= 70)  return { key: "xl_50_70",  label: "Extra-large 50+ to 70 lb",  reason: "Weight in 50–70 lb band" };
-    if (unitWeightLb <= 150) return { key: "xl_70_150",  label: "Extra-large 70+ to 150 lb", reason: "Weight in 70–150 lb band" };
-    return { key: "xl_150_plus", label: "Extra-large 150+ lb", reason: "Weight > 150 lb band" };
+  // Large Bulky (exists in both, thresholds differ slightly in 2024 table but your paste matches 59/33/33/L+G<=130)
+  if (sw.shipLb <= 50 && L<=59 && M<=33 && S<=33 && lpg<=130){
+    return { key:"large_bulky", label:"Large Bulky", reason:"Meets Large Bulky thresholds", ship: sw };
   }
 
-  function isOvermax(len, wid, hei, tierKey) {
-    if (!(len > 0 && wid > 0 && hei > 0)) return false;
-    const { L, W, H } = sortDimsDesc(len, wid, hei);
-    const lpg = lengthPlusGirth(L, W, H);
-    const isXLUpTo150 = (tierKey === "xl_0_50" || tierKey === "xl_50_70" || tierKey === "xl_70_150");
-    if (!isXLUpTo150) return false;
-    return (L > 96) || (lpg > 130);
+  // Extra-Large definition (your paste):
+  // XL if exceeds: L>59 OR M>33 OR S>33 OR L+G>130 OR ship weight > 50
+  // Then band by shipping weight:
+  // 0–50 (if XL by dims but <=50), 50+–70, 70+–150, 150+
+  const exceedsXLdims = (L>59 || M>33 || S>33 || lpg>130);
+
+  if (sw.shipLb > 150) return { key:"xl_150_plus", label:"Extra-large 150+ lb", reason:"Ship wt > 150 lb", ship: sw };
+  if (sw.shipLb > 70)  return { key:"xl_70_150",  label:"Extra-large 70+ to 150 lb", reason:"Ship wt 70–150 lb", ship: sw };
+  if (sw.shipLb > 50)  return { key:"xl_50_70",   label:"Extra-large 50+ to 70 lb",  reason:"Ship wt 50–70 lb", ship: sw };
+
+  if (sw.shipLb <= 50 && exceedsXLdims){
+    return { key:"xl_0_50", label:"Extra-large 0 to 50 lb", reason:"Exceeds XL dim/L+G thresholds (<=50 lb)", ship: sw };
   }
 
-  function billableWeightLb(len, wid, hei, unitWeightLb, tierKey) {
-    // Small standard & xl_150_plus: unit weight only
-    if (tierKey === "small_standard" || tierKey === "xl_150_plus") {
-      return { billable: unitWeightLb, unit: unitWeightLb, dim: 0, used: "unit (rule)" };
+  // If it doesn't match bulky thresholds but isn't XL by thresholds, treat as XL 0–50 fallback.
+  return { key:"xl_0_50", label:"Extra-large 0 to 50 lb", reason:"Fallback oversize bucket", ship: sw };
+}
+
+function isOvermaxXLUpTo150(tierKey, len, wid, hei){
+  if (!(len>0 && wid>0 && hei>0)) return false;
+  const {L,M,S} = sortDimsDesc(len, wid, hei);
+  const lpg = lengthPlusGirth(L,M,S);
+  const isXLUpTo150 = (tierKey === "xl_0_50" || tierKey === "xl_50_70" || tierKey === "xl_70_150");
+  if (!isXLUpTo150) return false;
+  return (L > 96) || (lpg > 130);
+}
+
+/* Fee shipping weight rule from your paste:
+   - Small standard and XL 150+ use UNIT weight only for fees.
+   - All other tiers use max(unit, dim) with min W/H=2.
+*/
+function billableWeightForFees(tierKey, unitLb, len, wid, hei){
+  if (tierKey === "small_standard" || tierKey === "xl_150_plus"){
+    return { billLb: unitLb, unitLb, dimLb: 0, used: "unit (rule)" };
+  }
+  const dimLb = dimWeightLb(len, wid, hei, true);
+  const billLb = Math.max(unitLb, dimLb);
+  return { billLb, unitLb, dimLb, used: (billLb === unitLb) ? "unit" : "dim" };
+}
+
+/* =========================================================
+   Fee engine (tables + formulas)
+========================================================= */
+function calcFeeFromTable(table, weightLb, bandKey){
+  const weightOz = weightLb * 16;
+
+  const ozBrackets = table.filter(x => x.maxOz !== undefined);
+  if (ozBrackets.length){
+    for (const row of ozBrackets){
+      if (weightOz <= row.maxOz + 1e-9) return row[bandKey];
     }
-
-    // Large standard, bulky, XL up to 150: max(unit, dim) with min W/H=2
-    const dim = dimensionalWeightLb(len, wid, hei, true);
-    const bill = Math.max(unitWeightLb, dim);
-    const used = (bill === unitWeightLb) ? "unit (>= dim)" : "dim (>= unit)";
-    return { billable: bill, unit: unitWeightLb, dim, used };
   }
 
-  // =========================
-  // Fee tables (from your pasted data)
-  // =========================
-  // Structure:
-  // FEES[season][ptype][tierKey] = array of brackets + special formulas
-  //
-  // Brackets:
-  //  - { maxOz, lt10, b10_50, gt50 }
-  //  - { maxLb, lt10, b10_50, gt50 }
-  // Specials:
-  //  - LS_3_TO_20_PER_4OZ (nonapparel + danger)
-  //  - LS_3_TO_20_PER_HALF_LB (apparel)
-  //  - BASE_PLUS_PER_LB_ABOVE (bulky & XL)
-  const FEES = {
-    nonpeak_2026: {
-      nonapparel: {
-        small_standard: [
-          { maxOz: 2,  lt10: 2.43, b10_50: 3.32, gt50: 3.58 },
-          { maxOz: 4,  lt10: 2.49, b10_50: 3.42, gt50: 3.68 },
-          { maxOz: 6,  lt10: 2.56, b10_50: 3.45, gt50: 3.71 },
-          { maxOz: 8,  lt10: 2.66, b10_50: 3.54, gt50: 3.80 },
-          { maxOz: 10, lt10: 2.77, b10_50: 3.68, gt50: 3.94 },
-          { maxOz: 12, lt10: 2.82, b10_50: 3.78, gt50: 4.04 },
-          { maxOz: 14, lt10: 2.92, b10_50: 3.91, gt50: 4.17 },
-          { maxOz: 16, lt10: 2.95, b10_50: 3.96, gt50: 4.22 },
-        ],
-        large_standard: [
-          { maxOz: 4,  lt10: 2.91, b10_50: 3.73, gt50: 3.99 },
-          { maxOz: 8,  lt10: 3.13, b10_50: 3.95, gt50: 4.21 },
-          { maxOz: 12, lt10: 3.38, b10_50: 4.20, gt50: 4.46 },
-          { maxOz: 16, lt10: 3.78, b10_50: 4.60, gt50: 4.86 },
-          { maxLb: 1.25, lt10: 4.22, b10_50: 5.04, gt50: 5.30 },
-          { maxLb: 1.5,  lt10: 4.60, b10_50: 5.42, gt50: 5.68 },
-          { maxLb: 1.75, lt10: 4.75, b10_50: 5.57, gt50: 5.83 },
-          { maxLb: 2.0,  lt10: 5.00, b10_50: 5.82, gt50: 6.08 },
-          { maxLb: 2.25, lt10: 5.10, b10_50: 5.92, gt50: 6.18 },
-          { maxLb: 2.5,  lt10: 5.28, b10_50: 6.10, gt50: 6.36 },
-          { maxLb: 2.75, lt10: 5.44, b10_50: 6.26, gt50: 6.52 },
-          { maxLb: 3.0,  lt10: 5.85, b10_50: 6.67, gt50: 6.93 },
-          { special: "LS_3_TO_20_PER_4OZ",
-            base: { lt10: 6.15, b10_50: 6.97, gt50: 7.23 },
-            perInterval: 0.08, intervalOz: 4, startLb: 3, endLb: 20
-          }
-        ],
-        small_bulky: [
-          { special: "BASE_PLUS_PER_LB_ABOVE",
-            base: { lt10: 6.78, b10_50: 7.55, gt50: 7.55 },
-            perLb: 0.38, aboveLb: 1, maxLb: 50
-          }
-        ],
-        large_bulky: [
-          { special: "BASE_PLUS_PER_LB_ABOVE",
-            base: { lt10: 8.58, b10_50: 9.35, gt50: 9.35 },
-            perLb: 0.38, aboveLb: 1, maxLb: 50
-          }
-        ],
-        xl_0_50: [
-          { special: "BASE_PLUS_PER_LB_ABOVE",
-            base: { lt10: 25.56, b10_50: 26.33, gt50: 26.33 },
-            perLb: 0.38, aboveLb: 1, maxLb: 50
-          }
-        ],
-        xl_50_70: [
-          { special: "BASE_PLUS_PER_LB_ABOVE",
-            base: { lt10: 36.55, b10_50: 37.32, gt50: 37.32 },
-            perLb: 0.75, aboveLb: 51, maxLb: 70
-          }
-        ],
-        xl_70_150: [
-          { special: "BASE_PLUS_PER_LB_ABOVE",
-            base: { lt10: 50.55, b10_50: 51.32, gt50: 51.32 },
-            perLb: 0.75, aboveLb: 71, maxLb: 150
-          }
-        ],
-        xl_150_plus: [
-          { special: "BASE_PLUS_PER_LB_ABOVE",
-            base: { lt10: 194.18, b10_50: 194.95, gt50: 194.95 },
-            perLb: 0.19, aboveLb: 151, maxLb: 100000
-          }
-        ],
-      },
+  const lbBrackets = table.filter(x => x.maxLb !== undefined);
+  if (lbBrackets.length){
+    for (const row of lbBrackets){
+      if (weightLb <= row.maxLb + 1e-9) return row[bandKey];
+    }
+  }
 
-      apparel: {
-        small_standard: [
-          { maxOz: 2,  lt10: 2.62, b10_50: 3.51, gt50: 3.77 },
-          { maxOz: 4,  lt10: 2.64, b10_50: 3.54, gt50: 3.80 },
-          { maxOz: 6,  lt10: 2.68, b10_50: 3.59, gt50: 3.85 },
-          { maxOz: 8,  lt10: 2.81, b10_50: 3.69, gt50: 3.95 },
-          { maxOz: 10, lt10: 3.00, b10_50: 3.91, gt50: 4.17 },
-          { maxOz: 12, lt10: 3.10, b10_50: 4.09, gt50: 4.35 },
-          { maxOz: 14, lt10: 3.20, b10_50: 4.20, gt50: 4.46 },
-          { maxOz: 16, lt10: 3.30, b10_50: 4.25, gt50: 4.51 },
-        ],
-        large_standard: [
-          { maxOz: 4,  lt10: 3.48, b10_50: 4.30, gt50: 4.56 },
-          { maxOz: 8,  lt10: 3.68, b10_50: 4.50, gt50: 4.76 },
-          { maxOz: 12, lt10: 3.90, b10_50: 4.72, gt50: 4.98 },
-          { maxOz: 16, lt10: 4.35, b10_50: 5.17, gt50: 5.43 },
-          { maxLb: 1.25, lt10: 5.05, b10_50: 5.87, gt50: 6.13 },
-          { maxLb: 1.5,  lt10: 5.22, b10_50: 6.04, gt50: 6.30 },
-          { maxLb: 1.75, lt10: 5.32, b10_50: 6.14, gt50: 6.40 },
-          { maxLb: 2.0,  lt10: 5.43, b10_50: 6.25, gt50: 6.51 },
-          { maxLb: 2.25, lt10: 5.78, b10_50: 6.60, gt50: 6.86 },
-          { maxLb: 2.5,  lt10: 5.90, b10_50: 6.72, gt50: 6.98 },
-          { maxLb: 2.75, lt10: 5.95, b10_50: 6.77, gt50: 7.03 },
-          { maxLb: 3.0,  lt10: 6.08, b10_50: 6.90, gt50: 7.16 },
-          { special: "LS_3_TO_20_PER_HALF_LB",
-            base: { lt10: 6.15, b10_50: 6.97, gt50: 7.23 },
-            perInterval: 0.16, intervalLb: 0.5, startLb: 3, endLb: 20
-          }
-        ],
-        small_bulky: [
-          { special: "BASE_PLUS_PER_LB_ABOVE",
-            base: { lt10: 6.78, b10_50: 7.55, gt50: 7.55 },
-            perLb: 0.38, aboveLb: 1, maxLb: 50
-          }
-        ],
-        large_bulky: [
-          { special: "BASE_PLUS_PER_LB_ABOVE",
-            base: { lt10: 8.58, b10_50: 9.35, gt50: 9.35 },
-            perLb: 0.38, aboveLb: 1, maxLb: 50
-          }
-        ],
-        xl_0_50: [
-          { special: "BASE_PLUS_PER_LB_ABOVE",
-            base: { lt10: 25.56, b10_50: 26.33, gt50: 26.33 },
-            perLb: 0.38, aboveLb: 1, maxLb: 50
-          }
-        ],
-        xl_50_70: [
-          { special: "BASE_PLUS_PER_LB_ABOVE",
-            base: { lt10: 36.55, b10_50: 37.32, gt50: 37.32 },
-            perLb: 0.75, aboveLb: 51, maxLb: 70
-          }
-        ],
-        xl_70_150: [
-          { special: "BASE_PLUS_PER_LB_ABOVE",
-            base: { lt10: 50.55, b10_50: 51.32, gt50: 51.32 },
-            perLb: 0.75, aboveLb: 71, maxLb: 150
-          }
-        ],
-        xl_150_plus: [
-          { special: "BASE_PLUS_PER_LB_ABOVE",
-            base: { lt10: 194.18, b10_50: 194.95, gt50: 194.95 },
-            perLb: 0.19, aboveLb: 151, maxLb: 100000
-          }
-        ],
-      },
+  const special = table.find(x => x.special);
+  if (!special) return null;
 
-      danger: {
-        small_standard: [
-          { maxOz: 2,  lt10: 3.40, b10_50: 4.29, gt50: 4.55 },
-          { maxOz: 4,  lt10: 3.43, b10_50: 4.36, gt50: 4.62 },
-          { maxOz: 6,  lt10: 3.48, b10_50: 4.37, gt50: 4.63 },
-          { maxOz: 8,  lt10: 3.55, b10_50: 4.43, gt50: 4.69 },
-          { maxOz: 10, lt10: 3.64, b10_50: 4.55, gt50: 4.81 },
-          { maxOz: 12, lt10: 3.65, b10_50: 4.61, gt50: 4.87 },
-          { maxOz: 14, lt10: 3.73, b10_50: 4.72, gt50: 4.98 },
-          { maxOz: 16, lt10: 3.77, b10_50: 4.78, gt50: 5.04 },
-        ],
-        large_standard: [
-          { maxOz: 4,  lt10: 3.73, b10_50: 4.55, gt50: 4.81 },
-          { maxOz: 8,  lt10: 3.94, b10_50: 4.76, gt50: 5.02 },
-          { maxOz: 12, lt10: 4.17, b10_50: 4.99, gt50: 5.25 },
-          { maxOz: 16, lt10: 4.37, b10_50: 5.19, gt50: 5.45 },
-          { maxLb: 1.25, lt10: 4.82, b10_50: 5.64, gt50: 5.90 },
-          { maxLb: 1.5,  lt10: 5.20, b10_50: 6.02, gt50: 6.28 },
-          { maxLb: 1.75, lt10: 5.35, b10_50: 6.17, gt50: 6.43 },
-          { maxLb: 2.0,  lt10: 5.49, b10_50: 6.31, gt50: 6.57 },
-          { maxLb: 2.25, lt10: 5.56, b10_50: 6.38, gt50: 6.64 },
-          { maxLb: 2.5,  lt10: 5.74, b10_50: 6.56, gt50: 6.82 },
-          { maxLb: 2.75, lt10: 5.90, b10_50: 6.72, gt50: 6.98 },
-          { maxLb: 3.0,  lt10: 6.31, b10_50: 7.13, gt50: 7.39 },
-          { special: "LS_3_TO_20_PER_4OZ",
-            base: { lt10: 6.61, b10_50: 7.43, gt50: 7.69 },
-            perInterval: 0.08, intervalOz: 4, startLb: 3, endLb: 20
-          }
-        ],
-        small_bulky: [
-          { special: "BASE_PLUS_PER_LB_ABOVE",
-            base: { lt10: 7.50, b10_50: 8.27, gt50: 8.27 },
-            perLb: 0.38, aboveLb: 1, maxLb: 50
-          }
-        ],
-        large_bulky: [
-          { special: "BASE_PLUS_PER_LB_ABOVE",
-            base: { lt10: 9.30, b10_50: 10.07, gt50: 10.07 },
-            perLb: 0.38, aboveLb: 1, maxLb: 50
-          }
-        ],
-        xl_0_50: [
-          { special: "BASE_PLUS_PER_LB_ABOVE",
-            base: { lt10: 27.67, b10_50: 28.44, gt50: 28.44 },
-            perLb: 0.38, aboveLb: 1, maxLb: 50
-          }
-        ],
-        xl_50_70: [
-          { special: "BASE_PLUS_PER_LB_ABOVE",
-            base: { lt10: 39.76, b10_50: 40.53, gt50: 40.53 },
-            perLb: 0.75, aboveLb: 51, maxLb: 70
-          }
-        ],
-        xl_70_150: [
-          { special: "BASE_PLUS_PER_LB_ABOVE",
-            base: { lt10: 57.68, b10_50: 58.45, gt50: 58.45 },
-            perLb: 0.75, aboveLb: 71, maxLb: 150
-          }
-        ],
-        xl_150_plus: [
-          { special: "BASE_PLUS_PER_LB_ABOVE",
-            base: { lt10: 218.76, b10_50: 219.53, gt50: 219.53 },
-            perLb: 0.19, aboveLb: 151, maxLb: 100000
-          }
-        ],
-      }
+  if (special.special === "LS_3_TO_20_PER_4OZ"){
+    const base = special.base[bandKey];
+    const capped = Math.min(Math.max(weightLb, special.startLb), special.endLb);
+    const extraLb = Math.max(0, capped - special.startLb);
+    const extraOz = extraLb * 16;
+    const intervals = Math.ceil(extraOz / special.intervalOz);
+    return base + (intervals * special.perInterval);
+  }
+
+  if (special.special === "LS_3_TO_20_PER_HALF_LB"){
+    const base = special.base[bandKey];
+    const capped = Math.min(Math.max(weightLb, special.startLb), special.endLb);
+    const extraLb = Math.max(0, capped - special.startLb);
+    const intervals = Math.ceil(extraLb / special.intervalLb);
+    return base + (intervals * special.perInterval);
+  }
+
+  if (special.special === "BASE_PLUS_PER_LB_ABOVE"){
+    const base = special.base[bandKey];
+    const capped = Math.min(weightLb, special.maxLb ?? Infinity);
+    const wRounded = Math.ceil(capped);
+    const extra = Math.max(0, wRounded - special.aboveLb);
+    return base + (extra * special.perLb);
+  }
+
+  return null;
+}
+
+/* =========================================================
+   Rate cards (from your pasted tables)
+   Seasons:
+     - nonpeak_2025 = Jan 15, 2025 – Oct 14, 2025
+     - peak_2025    = Oct 15, 2025 – Jan 14, 2026
+     - nonpeak_2026 = Starting Jan 15, 2026
+========================================================= */
+const FEES = {
+  nonpeak_2025: {
+    nonapparel: {
+      small_standard: [
+        { maxOz: 2,  lt10: 2.29, b10_50: 3.06, gt50: 3.06 },
+        { maxOz: 4,  lt10: 2.38, b10_50: 3.15, gt50: 3.15 },
+        { maxOz: 6,  lt10: 2.47, b10_50: 3.24, gt50: 3.24 },
+        { maxOz: 8,  lt10: 2.56, b10_50: 3.33, gt50: 3.33 },
+        { maxOz: 10, lt10: 2.66, b10_50: 3.43, gt50: 3.43 },
+        { maxOz: 12, lt10: 2.76, b10_50: 3.53, gt50: 3.53 },
+        { maxOz: 14, lt10: 2.83, b10_50: 3.60, gt50: 3.60 },
+        { maxOz: 16, lt10: 2.88, b10_50: 3.65, gt50: 3.65 },
+      ],
+      large_standard: [
+        { maxOz: 4,  lt10: 2.91, b10_50: 3.68, gt50: 3.68 },
+        { maxOz: 8,  lt10: 3.13, b10_50: 3.90, gt50: 3.90 },
+        { maxOz: 12, lt10: 3.38, b10_50: 4.15, gt50: 4.15 },
+        { maxOz: 16, lt10: 3.78, b10_50: 4.55, gt50: 4.55 },
+        { maxLb: 1.25, lt10: 4.22, b10_50: 4.99, gt50: 4.99 },
+        { maxLb: 1.5,  lt10: 4.60, b10_50: 5.37, gt50: 5.37 },
+        { maxLb: 1.75, lt10: 4.75, b10_50: 5.52, gt50: 5.52 },
+        { maxLb: 2.0,  lt10: 5.00, b10_50: 5.77, gt50: 5.77 },
+        { maxLb: 2.25, lt10: 5.10, b10_50: 5.87, gt50: 5.87 },
+        { maxLb: 2.5,  lt10: 5.28, b10_50: 6.05, gt50: 6.05 },
+        { maxLb: 2.75, lt10: 5.44, b10_50: 6.21, gt50: 6.21 },
+        { maxLb: 3.0,  lt10: 5.85, b10_50: 6.62, gt50: 6.62 },
+        { special: "LS_3_TO_20_PER_4OZ",
+          base: { lt10: 6.15, b10_50: 6.92, gt50: 6.92 },
+          perInterval: 0.08, intervalOz: 4, startLb: 3, endLb: 20
+        }
+      ],
+      small_bulky: [
+        { special: "BASE_PLUS_PER_LB_ABOVE",
+          base: { lt10: 8.84, b10_50: 9.61, gt50: 9.61 },
+          perLb: 0.38, aboveLb: 1, maxLb: 50
+        }
+      ],
+      large_bulky: [
+        { special: "BASE_PLUS_PER_LB_ABOVE",
+          base: { lt10: 8.84, b10_50: 9.61, gt50: 9.61 },
+          perLb: 0.38, aboveLb: 1, maxLb: 50
+        }
+      ],
+      xl_0_50: [
+        { special: "BASE_PLUS_PER_LB_ABOVE",
+          base: { lt10: 25.56, b10_50: 26.33, gt50: 26.33 },
+          perLb: 0.38, aboveLb: 1, maxLb: 50
+        }
+      ],
+      xl_50_70: [
+        { special: "BASE_PLUS_PER_LB_ABOVE",
+          base: { lt10: 39.35, b10_50: 40.12, gt50: 40.12 },
+          perLb: 0.75, aboveLb: 51, maxLb: 70
+        }
+      ],
+      xl_70_150: [
+        { special: "BASE_PLUS_PER_LB_ABOVE",
+          base: { lt10: 54.04, b10_50: 54.81, gt50: 54.81 },
+          perLb: 0.75, aboveLb: 71, maxLb: 150
+        }
+      ],
+      xl_150_plus: [
+        { special: "BASE_PLUS_PER_LB_ABOVE",
+          base: { lt10: 194.18, b10_50: 194.95, gt50: 194.95 },
+          perLb: 0.19, aboveLb: 151, maxLb: 100000
+        }
+      ],
     },
 
-    peak_2025: {
-      nonapparel: {
-        small_standard: [
-          { maxOz: 2,  lt10: 2.48, b10_50: 3.25, gt50: 3.25 },
-          { maxOz: 4,  lt10: 2.57, b10_50: 3.34, gt50: 3.34 },
-          { maxOz: 6,  lt10: 2.67, b10_50: 3.44, gt50: 3.44 },
-          { maxOz: 8,  lt10: 2.76, b10_50: 3.53, gt50: 3.53 },
-          { maxOz: 10, lt10: 2.87, b10_50: 3.64, gt50: 3.64 },
-          { maxOz: 12, lt10: 2.97, b10_50: 3.74, gt50: 3.74 },
-          { maxOz: 14, lt10: 3.05, b10_50: 3.82, gt50: 3.82 },
-          { maxOz: 16, lt10: 3.10, b10_50: 3.87, gt50: 3.87 },
-        ],
-        large_standard: [
-          { maxOz: 4,  lt10: 3.15, b10_50: 3.92, gt50: 3.92 },
-          { maxOz: 8,  lt10: 3.39, b10_50: 4.16, gt50: 4.16 },
-          { maxOz: 12, lt10: 3.66, b10_50: 4.43, gt50: 4.43 },
-          { maxOz: 16, lt10: 4.07, b10_50: 4.84, gt50: 4.84 },
-          { maxLb: 1.25, lt10: 4.52, b10_50: 5.29, gt50: 5.29 },
-          { maxLb: 1.5,  lt10: 4.91, b10_50: 5.68, gt50: 5.68 },
-          { maxLb: 1.75, lt10: 5.07, b10_50: 5.84, gt50: 5.84 },
-          { maxLb: 2.0,  lt10: 5.33, b10_50: 6.10, gt50: 6.10 },
-          { maxLb: 2.25, lt10: 5.47, b10_50: 6.24, gt50: 6.24 },
-          { maxLb: 2.5,  lt10: 5.67, b10_50: 6.44, gt50: 6.44 },
-          { maxLb: 2.75, lt10: 5.84, b10_50: 6.61, gt50: 6.61 },
-          { maxLb: 3.0,  lt10: 6.26, b10_50: 7.03, gt50: 7.03 },
-          { special: "LS_3_TO_20_PER_4OZ",
-            base: { lt10: 6.69, b10_50: 7.46, gt50: 7.46 },
-            perInterval: 0.08, intervalOz: 4, startLb: 3, endLb: 20
-          }
-        ],
-        small_bulky: [
-          { special: "BASE_PLUS_PER_LB_ABOVE",
-            base: { lt10: 9.88, b10_50: 10.65, gt50: 10.65 },
-            perLb: 0.38, aboveLb: 1, maxLb: 50
-          }
-        ],
-        large_bulky: [
-          { special: "BASE_PLUS_PER_LB_ABOVE",
-            base: { lt10: 9.88, b10_50: 10.65, gt50: 10.65 },
-            perLb: 0.38, aboveLb: 1, maxLb: 50
-          }
-        ],
-        xl_0_50: [
-          { special: "BASE_PLUS_PER_LB_ABOVE",
-            base: { lt10: 28.29, b10_50: 29.06, gt50: 29.06 },
-            perLb: 0.38, aboveLb: 1, maxLb: 50
-          }
-        ],
-        xl_50_70: [
-          { special: "BASE_PLUS_PER_LB_ABOVE",
-            base: { lt10: 42.16, b10_50: 42.93, gt50: 42.93 },
-            perLb: 0.75, aboveLb: 51, maxLb: 70
-          }
-        ],
-        xl_70_150: [
-          { special: "BASE_PLUS_PER_LB_ABOVE",
-            base: { lt10: 58.46, b10_50: 59.23, gt50: 59.23 },
-            perLb: 0.75, aboveLb: 71, maxLb: 150
-          }
-        ],
-        xl_150_plus: [
-          { special: "BASE_PLUS_PER_LB_ABOVE",
-            base: { lt10: 202.69, b10_50: 203.46, gt50: 203.46 },
-            perLb: 0.19, aboveLb: 151, maxLb: 100000
-          }
-        ],
-      },
+    apparel: {
+      small_standard: [
+        { maxOz: 2,  lt10: 2.50, b10_50: 3.27, gt50: 3.27 },
+        { maxOz: 4,  lt10: 2.50, b10_50: 3.27, gt50: 3.27 },
+        { maxOz: 6,  lt10: 2.65, b10_50: 3.42, gt50: 3.42 },
+        { maxOz: 8,  lt10: 2.65, b10_50: 3.42, gt50: 3.42 },
+        { maxOz: 10, lt10: 2.95, b10_50: 3.72, gt50: 3.72 },
+        { maxOz: 12, lt10: 2.95, b10_50: 3.72, gt50: 3.72 },
+        { maxOz: 14, lt10: 3.21, b10_50: 3.98, gt50: 3.98 },
+        { maxOz: 16, lt10: 3.21, b10_50: 3.98, gt50: 3.98 },
+      ],
+      large_standard: [
+        { maxOz: 4,  lt10: 3.48, b10_50: 4.25, gt50: 4.25 },
+        { maxOz: 8,  lt10: 3.68, b10_50: 4.45, gt50: 4.45 },
+        { maxOz: 12, lt10: 3.90, b10_50: 4.67, gt50: 4.67 },
+        { maxOz: 16, lt10: 4.35, b10_50: 5.12, gt50: 5.12 },
+        { maxLb: 1.25, lt10: 5.13, b10_50: 5.90, gt50: 5.90 },
+        { maxLb: 1.5,  lt10: 5.13, b10_50: 5.90, gt50: 5.90 },
+        { maxLb: 1.75, lt10: 5.37, b10_50: 6.14, gt50: 6.14 },
+        { maxLb: 2.0,  lt10: 5.37, b10_50: 6.14, gt50: 6.14 },
+        { maxLb: 2.25, lt10: 5.83, b10_50: 6.60, gt50: 6.60 },
+        { maxLb: 2.5,  lt10: 5.83, b10_50: 6.60, gt50: 6.60 },
+        { maxLb: 2.75, lt10: 6.04, b10_50: 6.81, gt50: 6.81 },
+        { maxLb: 3.0,  lt10: 6.04, b10_50: 6.81, gt50: 6.81 },
+        { special: "LS_3_TO_20_PER_HALF_LB",
+          base: { lt10: 6.15, b10_50: 6.92, gt50: 6.92 },
+          perInterval: 0.16, intervalLb: 0.5, startLb: 3, endLb: 20
+        }
+      ],
+      small_bulky: [
+        { special: "BASE_PLUS_PER_LB_ABOVE",
+          base: { lt10: 8.84, b10_50: 9.61, gt50: 9.61 },
+          perLb: 0.38, aboveLb: 1, maxLb: 50
+        }
+      ],
+      large_bulky: [
+        { special: "BASE_PLUS_PER_LB_ABOVE",
+          base: { lt10: 8.84, b10_50: 9.61, gt50: 9.61 },
+          perLb: 0.38, aboveLb: 1, maxLb: 50
+        }
+      ],
+      xl_0_50: [
+        { special: "BASE_PLUS_PER_LB_ABOVE",
+          base: { lt10: 25.56, b10_50: 26.33, gt50: 26.33 },
+          perLb: 0.38, aboveLb: 1, maxLb: 50
+        }
+      ],
+      xl_50_70: [
+        { special: "BASE_PLUS_PER_LB_ABOVE",
+          base: { lt10: 39.35, b10_50: 40.12, gt50: 40.12 },
+          perLb: 0.75, aboveLb: 51, maxLb: 70
+        }
+      ],
+      xl_70_150: [
+        { special: "BASE_PLUS_PER_LB_ABOVE",
+          base: { lt10: 54.04, b10_50: 54.81, gt50: 54.81 },
+          perLb: 0.75, aboveLb: 71, maxLb: 150
+        }
+      ],
+      xl_150_plus: [
+        { special: "BASE_PLUS_PER_LB_ABOVE",
+          base: { lt10: 194.18, b10_50: 194.95, gt50: 194.95 },
+          perLb: 0.19, aboveLb: 151, maxLb: 100000
+        }
+      ],
+    },
 
-      apparel: {
-        small_standard: [
-          { maxOz: 2,  lt10: 2.73, b10_50: 3.50, gt50: 3.50 },
-          { maxOz: 4,  lt10: 2.73, b10_50: 3.50, gt50: 3.50 },
-          { maxOz: 6,  lt10: 2.90, b10_50: 3.67, gt50: 3.67 },
-          { maxOz: 8,  lt10: 2.90, b10_50: 3.67, gt50: 3.67 },
-          { maxOz: 10, lt10: 3.22, b10_50: 3.99, gt50: 3.99 },
-          { maxOz: 12, lt10: 3.22, b10_50: 3.99, gt50: 3.99 },
-          { maxOz: 14, lt10: 3.50, b10_50: 4.27, gt50: 4.27 },
-          { maxOz: 16, lt10: 3.50, b10_50: 4.27, gt50: 4.27 },
-        ],
-        large_standard: [
-          { maxOz: 4,  lt10: 3.79, b10_50: 4.56, gt50: 4.56 },
-          { maxOz: 8,  lt10: 4.00, b10_50: 4.77, gt50: 4.77 },
-          { maxOz: 12, lt10: 4.23, b10_50: 5.00, gt50: 5.00 },
-          { maxOz: 16, lt10: 4.69, b10_50: 5.46, gt50: 5.46 },
-          { maxLb: 1.25, lt10: 5.50, b10_50: 6.27, gt50: 6.27 },
-          { maxLb: 1.5,  lt10: 5.50, b10_50: 6.27, gt50: 6.27 },
-          { maxLb: 1.75, lt10: 5.76, b10_50: 6.53, gt50: 6.53 },
-          { maxLb: 2.0,  lt10: 5.76, b10_50: 6.53, gt50: 6.53 },
-          { maxLb: 2.25, lt10: 6.27, b10_50: 7.04, gt50: 7.04 },
-          { maxLb: 2.5,  lt10: 6.27, b10_50: 7.04, gt50: 7.04 },
-          { maxLb: 2.75, lt10: 6.50, b10_50: 7.27, gt50: 7.27 },
-          { maxLb: 3.0,  lt10: 6.50, b10_50: 7.27, gt50: 7.27 },
-          { special: "LS_3_TO_20_PER_HALF_LB",
-            base: { lt10: 6.82, b10_50: 7.59, gt50: 7.59 },
-            perInterval: 0.16, intervalLb: 0.5, startLb: 3, endLb: 20
-          }
-        ],
-        small_bulky: [
-          { special: "BASE_PLUS_PER_LB_ABOVE",
-            base: { lt10: 9.88, b10_50: 10.65, gt50: 10.65 },
-            perLb: 0.38, aboveLb: 1, maxLb: 50
-          }
-        ],
-        large_bulky: [
-          { special: "BASE_PLUS_PER_LB_ABOVE",
-            base: { lt10: 9.88, b10_50: 10.65, gt50: 10.65 },
-            perLb: 0.38, aboveLb: 1, maxLb: 50
-          }
-        ],
-        xl_0_50: [
-          { special: "BASE_PLUS_PER_LB_ABOVE",
-            base: { lt10: 28.29, b10_50: 29.06, gt50: 29.06 },
-            perLb: 0.38, aboveLb: 1, maxLb: 50
-          }
-        ],
-        xl_50_70: [
-          { special: "BASE_PLUS_PER_LB_ABOVE",
-            base: { lt10: 42.16, b10_50: 42.93, gt50: 42.93 },
-            perLb: 0.75, aboveLb: 51, maxLb: 70
-          }
-        ],
-        xl_70_150: [
-          { special: "BASE_PLUS_PER_LB_ABOVE",
-            base: { lt10: 58.46, b10_50: 59.23, gt50: 59.23 },
-            perLb: 0.75, aboveLb: 71, maxLb: 150
-          }
-        ],
-        xl_150_plus: [
-          { special: "BASE_PLUS_PER_LB_ABOVE",
-            base: { lt10: 202.69, b10_50: 203.46, gt50: 203.46 },
-            perLb: 0.19, aboveLb: 151, maxLb: 100000
-          }
-        ],
-      },
+    danger: {
+      small_standard: [
+        { maxOz: 2,  lt10: 3.26, b10_50: 4.03, gt50: 4.03 },
+        { maxOz: 4,  lt10: 3.32, b10_50: 4.09, gt50: 4.09 },
+        { maxOz: 6,  lt10: 3.39, b10_50: 4.16, gt50: 4.16 },
+        { maxOz: 8,  lt10: 3.45, b10_50: 4.22, gt50: 4.22 },
+        { maxOz: 10, lt10: 3.53, b10_50: 4.30, gt50: 4.30 },
+        { maxOz: 12, lt10: 3.59, b10_50: 4.36, gt50: 4.36 },
+        { maxOz: 14, lt10: 3.64, b10_50: 4.41, gt50: 4.41 },
+        { maxOz: 16, lt10: 3.70, b10_50: 4.47, gt50: 4.47 },
+      ],
+      large_standard: [
+        { maxOz: 4,  lt10: 3.73, b10_50: 4.50, gt50: 4.50 },
+        { maxOz: 8,  lt10: 3.94, b10_50: 4.71, gt50: 4.71 },
+        { maxOz: 12, lt10: 4.17, b10_50: 4.94, gt50: 4.94 },
+        { maxOz: 16, lt10: 4.37, b10_50: 5.14, gt50: 5.14 },
+        { maxLb: 1.25, lt10: 4.82, b10_50: 5.59, gt50: 5.59 },
+        { maxLb: 1.5,  lt10: 5.20, b10_50: 5.97, gt50: 5.97 },
+        { maxLb: 1.75, lt10: 5.35, b10_50: 6.12, gt50: 6.12 },
+        { maxLb: 2.0,  lt10: 5.49, b10_50: 6.26, gt50: 6.26 },
+        { maxLb: 2.25, lt10: 5.56, b10_50: 6.33, gt50: 6.33 },
+        { maxLb: 2.5,  lt10: 5.74, b10_50: 6.51, gt50: 6.51 },
+        { maxLb: 2.75, lt10: 5.90, b10_50: 6.67, gt50: 6.67 },
+        { maxLb: 3.0,  lt10: 6.31, b10_50: 7.08, gt50: 7.08 },
+        { special: "LS_3_TO_20_PER_4OZ",
+          base: { lt10: 6.61, b10_50: 7.38, gt50: 7.38 },
+          perInterval: 0.08, intervalOz: 4, startLb: 3, endLb: 20
+        }
+      ],
+      small_bulky: [
+        { special: "BASE_PLUS_PER_LB_ABOVE",
+          base: { lt10: 9.56, b10_50: 10.33, gt50: 10.33 },
+          perLb: 0.38, aboveLb: 1, maxLb: 50
+        }
+      ],
+      large_bulky: [
+        { special: "BASE_PLUS_PER_LB_ABOVE",
+          base: { lt10: 9.56, b10_50: 10.33, gt50: 10.33 },
+          perLb: 0.38, aboveLb: 1, maxLb: 50
+        }
+      ],
+      xl_0_50: [
+        { special: "BASE_PLUS_PER_LB_ABOVE",
+          base: { lt10: 27.67, b10_50: 28.44, gt50: 28.44 },
+          perLb: 0.38, aboveLb: 1, maxLb: 50
+        }
+      ],
+      xl_50_70: [
+        { special: "BASE_PLUS_PER_LB_ABOVE",
+          base: { lt10: 42.56, b10_50: 43.33, gt50: 43.33 },
+          perLb: 0.75, aboveLb: 51, maxLb: 70
+        }
+      ],
+      xl_70_150: [
+        { special: "BASE_PLUS_PER_LB_ABOVE",
+          base: { lt10: 61.17, b10_50: 61.94, gt50: 61.94 },
+          perLb: 0.75, aboveLb: 71, maxLb: 150
+        }
+      ],
+      xl_150_plus: [
+        { special: "BASE_PLUS_PER_LB_ABOVE",
+          base: { lt10: 218.76, b10_50: 219.53, gt50: 219.53 },
+          perLb: 0.19, aboveLb: 151, maxLb: 100000
+        }
+      ],
+    }
+  },
 
-      danger: {
-        small_standard: [
-          { maxOz: 2,  lt10: 3.60, b10_50: 4.37, gt50: 4.37 },
-          { maxOz: 4,  lt10: 3.69, b10_50: 4.46, gt50: 4.46 },
-          { maxOz: 6,  lt10: 3.79, b10_50: 4.56, gt50: 4.56 },
-          { maxOz: 8,  lt10: 3.88, b10_50: 4.65, gt50: 4.65 },
-          { maxOz: 10, lt10: 3.99, b10_50: 4.76, gt50: 4.76 },
-          { maxOz: 12, lt10: 4.08, b10_50: 4.85, gt50: 4.85 },
-          { maxOz: 14, lt10: 4.16, b10_50: 4.93, gt50: 4.93 },
-          { maxOz: 16, lt10: 4.25, b10_50: 5.02, gt50: 5.02 },
-        ],
-        large_standard: [
-          { maxOz: 4,  lt10: 4.32, b10_50: 5.09, gt50: 5.09 },
-          { maxOz: 8,  lt10: 4.56, b10_50: 5.33, gt50: 5.33 },
-          { maxOz: 12, lt10: 4.82, b10_50: 5.59, gt50: 5.59 },
-          { maxOz: 16, lt10: 5.04, b10_50: 5.81, gt50: 5.81 },
-          { maxLb: 1.25, lt10: 5.51, b10_50: 6.28, gt50: 6.28 },
-          { maxLb: 1.5,  lt10: 5.91, b10_50: 6.68, gt50: 6.68 },
-          { maxLb: 1.75, lt10: 6.08, b10_50: 6.85, gt50: 6.85 },
-          { maxLb: 2.0,  lt10: 6.24, b10_50: 7.01, gt50: 7.01 },
-          { maxLb: 2.25, lt10: 6.33, b10_50: 7.10, gt50: 7.10 },
-          { maxLb: 2.5,  lt10: 6.53, b10_50: 7.30, gt50: 7.30 },
-          { maxLb: 2.75, lt10: 6.70, b10_50: 7.47, gt50: 7.47 },
-          { maxLb: 3.0,  lt10: 7.12, b10_50: 7.89, gt50: 7.89 },
-          { special: "LS_3_TO_20_PER_4OZ",
-            base: { lt10: 7.51, b10_50: 8.28, gt50: 8.28 },
-            perInterval: 0.08, intervalOz: 4, startLb: 3, endLb: 20
-          }
-        ],
-        small_bulky: [
-          { special: "BASE_PLUS_PER_LB_ABOVE",
-            base: { lt10: 11.12, b10_50: 11.89, gt50: 11.89 },
-            perLb: 0.38, aboveLb: 1, maxLb: 50
-          }
-        ],
-        large_bulky: [
-          { special: "BASE_PLUS_PER_LB_ABOVE",
-            base: { lt10: 11.12, b10_50: 11.89, gt50: 11.89 },
-            perLb: 0.38, aboveLb: 1, maxLb: 50
-          }
-        ],
-        xl_0_50: [
-          { special: "BASE_PLUS_PER_LB_ABOVE",
-            base: { lt10: 31.71, b10_50: 32.48, gt50: 32.48 },
-            perLb: 0.38, aboveLb: 1, maxLb: 50
-          }
-        ],
-        xl_50_70: [
-          { special: "BASE_PLUS_PER_LB_ABOVE",
-            base: { lt10: 46.66, b10_50: 47.43, gt50: 47.43 },
-            perLb: 0.75, aboveLb: 51, maxLb: 70
-          }
-        ],
-        xl_70_150: [
-          { special: "BASE_PLUS_PER_LB_ABOVE",
-            base: { lt10: 67.53, b10_50: 68.30, gt50: 68.30 },
-            perLb: 0.75, aboveLb: 71, maxLb: 150
-          }
-        ],
-        xl_150_plus: [
-          { special: "BASE_PLUS_PER_LB_ABOVE",
-            base: { lt10: 230.84, b10_50: 231.61, gt50: 231.61 },
-            perLb: 0.19, aboveLb: 151, maxLb: 100000
-          }
-        ],
+  /* Your earlier Auto v2 tables already match these two seasons */
+  nonpeak_2026: window.__FEES_NONPEAK_2026 || undefined,
+  peak_2025: window.__FEES_PEAK_2025 || undefined
+};
+
+/* Inject the already-pasted peak_2025 and nonpeak_2026 tables from your code (kept verbatim below)
+   To keep this file self-contained, we define them here directly (no window globals).
+*/
+FEES.nonpeak_2026 = {
+  nonapparel: {
+    small_standard: [
+      { maxOz: 2,  lt10: 2.43, b10_50: 3.32, gt50: 3.58 },
+      { maxOz: 4,  lt10: 2.49, b10_50: 3.42, gt50: 3.68 },
+      { maxOz: 6,  lt10: 2.56, b10_50: 3.45, gt50: 3.71 },
+      { maxOz: 8,  lt10: 2.66, b10_50: 3.54, gt50: 3.80 },
+      { maxOz: 10, lt10: 2.77, b10_50: 3.68, gt50: 3.94 },
+      { maxOz: 12, lt10: 2.82, b10_50: 3.78, gt50: 4.04 },
+      { maxOz: 14, lt10: 2.92, b10_50: 3.91, gt50: 4.17 },
+      { maxOz: 16, lt10: 2.95, b10_50: 3.96, gt50: 4.22 },
+    ],
+    large_standard: [
+      { maxOz: 4,  lt10: 2.91, b10_50: 3.73, gt50: 3.99 },
+      { maxOz: 8,  lt10: 3.13, b10_50: 3.95, gt50: 4.21 },
+      { maxOz: 12, lt10: 3.38, b10_50: 4.20, gt50: 4.46 },
+      { maxOz: 16, lt10: 3.78, b10_50: 4.60, gt50: 4.86 },
+      { maxLb: 1.25, lt10: 4.22, b10_50: 5.04, gt50: 5.30 },
+      { maxLb: 1.5,  lt10: 4.60, b10_50: 5.42, gt50: 5.68 },
+      { maxLb: 1.75, lt10: 4.75, b10_50: 5.57, gt50: 5.83 },
+      { maxLb: 2.0,  lt10: 5.00, b10_50: 5.82, gt50: 6.08 },
+      { maxLb: 2.25, lt10: 5.10, b10_50: 5.92, gt50: 6.18 },
+      { maxLb: 2.5,  lt10: 5.28, b10_50: 6.10, gt50: 6.36 },
+      { maxLb: 2.75, lt10: 5.44, b10_50: 6.26, gt50: 6.52 },
+      { maxLb: 3.0,  lt10: 5.85, b10_50: 6.67, gt50: 6.93 },
+      { special: "LS_3_TO_20_PER_4OZ",
+        base: { lt10: 6.15, b10_50: 6.97, gt50: 7.23 },
+        perInterval: 0.08, intervalOz: 4, startLb: 3, endLb: 20
       }
-    }
-  };
-
-  // =========================
-  // Fee engine
-  // =========================
-  function calcFeeFromTable(table, weightLb, bandKey) {
-    const weightOz = weightLb * 16;
-
-    const ozBrackets = table.filter(x => x.maxOz !== undefined);
-    if (ozBrackets.length) {
-      for (const row of ozBrackets) {
-        if (weightOz <= row.maxOz + 1e-9) return row[bandKey];
+    ],
+    small_bulky: [
+      { special: "BASE_PLUS_PER_LB_ABOVE",
+        base: { lt10: 6.78, b10_50: 7.55, gt50: 7.55 },
+        perLb: 0.38, aboveLb: 1, maxLb: 50
       }
-    }
-
-    const lbBrackets = table.filter(x => x.maxLb !== undefined);
-    if (lbBrackets.length) {
-      for (const row of lbBrackets) {
-        if (weightLb <= row.maxLb + 1e-9) return row[bandKey];
+    ],
+    large_bulky: [
+      { special: "BASE_PLUS_PER_LB_ABOVE",
+        base: { lt10: 8.58, b10_50: 9.35, gt50: 9.35 },
+        perLb: 0.38, aboveLb: 1, maxLb: 50
       }
-    }
+    ],
+    xl_0_50: [
+      { special: "BASE_PLUS_PER_LB_ABOVE",
+        base: { lt10: 25.56, b10_50: 26.33, gt50: 26.33 },
+        perLb: 0.38, aboveLb: 1, maxLb: 50
+      }
+    ],
+    xl_50_70: [
+      { special: "BASE_PLUS_PER_LB_ABOVE",
+        base: { lt10: 36.55, b10_50: 37.32, gt50: 37.32 },
+        perLb: 0.75, aboveLb: 51, maxLb: 70
+      }
+    ],
+    xl_70_150: [
+      { special: "BASE_PLUS_PER_LB_ABOVE",
+        base: { lt10: 50.55, b10_50: 51.32, gt50: 51.32 },
+        perLb: 0.75, aboveLb: 71, maxLb: 150
+      }
+    ],
+    xl_150_plus: [
+      { special: "BASE_PLUS_PER_LB_ABOVE",
+        base: { lt10: 194.18, b10_50: 194.95, gt50: 194.95 },
+        perLb: 0.19, aboveLb: 151, maxLb: 100000
+      }
+    ]
+  },
 
-    const special = table.find(x => x.special);
-    if (!special) return null;
+  apparel: {
+    small_standard: [
+      { maxOz: 2,  lt10: 2.62, b10_50: 3.51, gt50: 3.77 },
+      { maxOz: 4,  lt10: 2.64, b10_50: 3.54, gt50: 3.80 },
+      { maxOz: 6,  lt10: 2.68, b10_50: 3.59, gt50: 3.85 },
+      { maxOz: 8,  lt10: 2.81, b10_50: 3.69, gt50: 3.95 },
+      { maxOz: 10, lt10: 3.00, b10_50: 3.91, gt50: 4.17 },
+      { maxOz: 12, lt10: 3.10, b10_50: 4.09, gt50: 4.35 },
+      { maxOz: 14, lt10: 3.20, b10_50: 4.20, gt50: 4.46 },
+      { maxOz: 16, lt10: 3.30, b10_50: 4.25, gt50: 4.51 },
+    ],
+    large_standard: [
+      { maxOz: 4,  lt10: 3.48, b10_50: 4.30, gt50: 4.56 },
+      { maxOz: 8,  lt10: 3.68, b10_50: 4.50, gt50: 4.76 },
+      { maxOz: 12, lt10: 3.90, b10_50: 4.72, gt50: 4.98 },
+      { maxOz: 16, lt10: 4.35, b10_50: 5.17, gt50: 5.43 },
+      { maxLb: 1.25, lt10: 5.05, b10_50: 5.87, gt50: 6.13 },
+      { maxLb: 1.5,  lt10: 5.22, b10_50: 6.04, gt50: 6.30 },
+      { maxLb: 1.75, lt10: 5.32, b10_50: 6.14, gt50: 6.40 },
+      { maxLb: 2.0,  lt10: 5.43, b10_50: 6.25, gt50: 6.51 },
+      { maxLb: 2.25, lt10: 5.78, b10_50: 6.60, gt50: 6.86 },
+      { maxLb: 2.5,  lt10: 5.90, b10_50: 6.72, gt50: 6.98 },
+      { maxLb: 2.75, lt10: 5.95, b10_50: 6.77, gt50: 7.03 },
+      { maxLb: 3.0,  lt10: 6.08, b10_50: 6.90, gt50: 7.16 },
+      { special: "LS_3_TO_20_PER_HALF_LB",
+        base: { lt10: 6.15, b10_50: 6.97, gt50: 7.23 },
+        perInterval: 0.16, intervalLb: 0.5, startLb: 3, endLb: 20
+      }
+    ],
+    small_bulky: [
+      { special: "BASE_PLUS_PER_LB_ABOVE",
+        base: { lt10: 6.78, b10_50: 7.55, gt50: 7.55 },
+        perLb: 0.38, aboveLb: 1, maxLb: 50
+      }
+    ],
+    large_bulky: [
+      { special: "BASE_PLUS_PER_LB_ABOVE",
+        base: { lt10: 8.58, b10_50: 9.35, gt50: 9.35 },
+        perLb: 0.38, aboveLb: 1, maxLb: 50
+      }
+    ],
+    xl_0_50: [
+      { special: "BASE_PLUS_PER_LB_ABOVE",
+        base: { lt10: 25.56, b10_50: 26.33, gt50: 26.33 },
+        perLb: 0.38, aboveLb: 1, maxLb: 50
+      }
+    ],
+    xl_50_70: [
+      { special: "BASE_PLUS_PER_LB_ABOVE",
+        base: { lt10: 36.55, b10_50: 37.32, gt50: 37.32 },
+        perLb: 0.75, aboveLb: 51, maxLb: 70
+      }
+    ],
+    xl_70_150: [
+      { special: "BASE_PLUS_PER_LB_ABOVE",
+        base: { lt10: 50.55, b10_50: 51.32, gt50: 51.32 },
+        perLb: 0.75, aboveLb: 71, maxLb: 150
+      }
+    ],
+    xl_150_plus: [
+      { special: "BASE_PLUS_PER_LB_ABOVE",
+        base: { lt10: 194.18, b10_50: 194.95, gt50: 194.95 },
+        perLb: 0.19, aboveLb: 151, maxLb: 100000
+      }
+    ]
+  },
 
-    if (special.special === "LS_3_TO_20_PER_4OZ") {
-      const base = special.base[bandKey];
-      const startLb = special.startLb;
-      const endLb = special.endLb;
-      const per = special.perInterval;
-      const intervalOz = special.intervalOz;
+  danger: {
+    small_standard: [
+      { maxOz: 2,  lt10: 3.40, b10_50: 4.29, gt50: 4.55 },
+      { maxOz: 4,  lt10: 3.43, b10_50: 4.36, gt50: 4.62 },
+      { maxOz: 6,  lt10: 3.48, b10_50: 4.37, gt50: 4.63 },
+      { maxOz: 8,  lt10: 3.55, b10_50: 4.43, gt50: 4.69 },
+      { maxOz: 10, lt10: 3.64, b10_50: 4.55, gt50: 4.81 },
+      { maxOz: 12, lt10: 3.65, b10_50: 4.61, gt50: 4.87 },
+      { maxOz: 14, lt10: 3.73, b10_50: 4.72, gt50: 4.98 },
+      { maxOz: 16, lt10: 3.77, b10_50: 4.78, gt50: 5.04 },
+    ],
+    large_standard: [
+      { maxOz: 4,  lt10: 3.73, b10_50: 4.55, gt50: 4.81 },
+      { maxOz: 8,  lt10: 3.94, b10_50: 4.76, gt50: 5.02 },
+      { maxOz: 12, lt10: 4.17, b10_50: 4.99, gt50: 5.25 },
+      { maxOz: 16, lt10: 4.37, b10_50: 5.19, gt50: 5.45 },
+      { maxLb: 1.25, lt10: 4.82, b10_50: 5.64, gt50: 5.90 },
+      { maxLb: 1.5,  lt10: 5.20, b10_50: 6.02, gt50: 6.28 },
+      { maxLb: 1.75, lt10: 5.35, b10_50: 6.17, gt50: 6.43 },
+      { maxLb: 2.0,  lt10: 5.49, b10_50: 6.31, gt50: 6.57 },
+      { maxLb: 2.25, lt10: 5.56, b10_50: 6.38, gt50: 6.64 },
+      { maxLb: 2.5,  lt10: 5.74, b10_50: 6.56, gt50: 6.82 },
+      { maxLb: 2.75, lt10: 5.90, b10_50: 6.72, gt50: 6.98 },
+      { maxLb: 3.0,  lt10: 6.31, b10_50: 7.13, gt50: 7.39 },
+      { special: "LS_3_TO_20_PER_4OZ",
+        base: { lt10: 6.61, b10_50: 7.43, gt50: 7.69 },
+        perInterval: 0.08, intervalOz: 4, startLb: 3, endLb: 20
+      }
+    ],
+    small_bulky: [
+      { special: "BASE_PLUS_PER_LB_ABOVE",
+        base: { lt10: 7.50, b10_50: 8.27, gt50: 8.27 },
+        perLb: 0.38, aboveLb: 1, maxLb: 50
+      }
+    ],
+    large_bulky: [
+      { special: "BASE_PLUS_PER_LB_ABOVE",
+        base: { lt10: 9.30, b10_50: 10.07, gt50: 10.07 },
+        perLb: 0.38, aboveLb: 1, maxLb: 50
+      }
+    ],
+    xl_0_50: [
+      { special: "BASE_PLUS_PER_LB_ABOVE",
+        base: { lt10: 27.67, b10_50: 28.44, gt50: 28.44 },
+        perLb: 0.38, aboveLb: 1, maxLb: 50
+      }
+    ],
+    xl_50_70: [
+      { special: "BASE_PLUS_PER_LB_ABOVE",
+        base: { lt10: 39.76, b10_50: 40.53, gt50: 40.53 },
+        perLb: 0.75, aboveLb: 51, maxLb: 70
+      }
+    ],
+    xl_70_150: [
+      { special: "BASE_PLUS_PER_LB_ABOVE",
+        base: { lt10: 57.68, b10_50: 58.45, gt50: 58.45 },
+        perLb: 0.75, aboveLb: 71, maxLb: 150
+      }
+    ],
+    xl_150_plus: [
+      { special: "BASE_PLUS_PER_LB_ABOVE",
+        base: { lt10: 218.76, b10_50: 219.53, gt50: 219.53 },
+        perLb: 0.19, aboveLb: 151, maxLb: 100000
+      }
+    ]
+  }
+};
 
-      const capped = Math.min(Math.max(weightLb, startLb), endLb);
-      const extraLb = Math.max(0, capped - startLb);
-      const extraOz = extraLb * 16;
-      const intervals = Math.ceil(extraOz / intervalOz);
-      return base + (intervals * per);
-    }
+FEES.peak_2025 = {
+  nonapparel: {
+    small_standard: [
+      { maxOz: 2,  lt10: 2.48, b10_50: 3.25, gt50: 3.25 },
+      { maxOz: 4,  lt10: 2.57, b10_50: 3.34, gt50: 3.34 },
+      { maxOz: 6,  lt10: 2.67, b10_50: 3.44, gt50: 3.44 },
+      { maxOz: 8,  lt10: 2.76, b10_50: 3.53, gt50: 3.53 },
+      { maxOz: 10, lt10: 2.87, b10_50: 3.64, gt50: 3.64 },
+      { maxOz: 12, lt10: 2.97, b10_50: 3.74, gt50: 3.74 },
+      { maxOz: 14, lt10: 3.05, b10_50: 3.82, gt50: 3.82 },
+      { maxOz: 16, lt10: 3.10, b10_50: 3.87, gt50: 3.87 },
+    ],
+    large_standard: [
+      { maxOz: 4,  lt10: 3.15, b10_50: 3.92, gt50: 3.92 },
+      { maxOz: 8,  lt10: 3.39, b10_50: 4.16, gt50: 4.16 },
+      { maxOz: 12, lt10: 3.66, b10_50: 4.43, gt50: 4.43 },
+      { maxOz: 16, lt10: 4.07, b10_50: 4.84, gt50: 4.84 },
+      { maxLb: 1.25, lt10: 4.52, b10_50: 5.29, gt50: 5.29 },
+      { maxLb: 1.5,  lt10: 4.91, b10_50: 5.68, gt50: 5.68 },
+      { maxLb: 1.75, lt10: 5.07, b10_50: 5.84, gt50: 5.84 },
+      { maxLb: 2.0,  lt10: 5.33, b10_50: 6.10, gt50: 6.10 },
+      { maxLb: 2.25, lt10: 5.47, b10_50: 6.24, gt50: 6.24 },
+      { maxLb: 2.5,  lt10: 5.67, b10_50: 6.44, gt50: 6.44 },
+      { maxLb: 2.75, lt10: 5.84, b10_50: 6.61, gt50: 6.61 },
+      { maxLb: 3.0,  lt10: 6.26, b10_50: 7.03, gt50: 7.03 },
+      { special: "LS_3_TO_20_PER_4OZ",
+        base: { lt10: 6.69, b10_50: 7.46, gt50: 7.46 },
+        perInterval: 0.08, intervalOz: 4, startLb: 3, endLb: 20
+      }
+    ],
+    small_bulky: [
+      { special: "BASE_PLUS_PER_LB_ABOVE",
+        base: { lt10: 9.88, b10_50: 10.65, gt50: 10.65 },
+        perLb: 0.38, aboveLb: 1, maxLb: 50
+      }
+    ],
+    large_bulky: [
+      { special: "BASE_PLUS_PER_LB_ABOVE",
+        base: { lt10: 9.88, b10_50: 10.65, gt50: 10.65 },
+        perLb: 0.38, aboveLb: 1, maxLb: 50
+      }
+    ],
+    xl_0_50: [
+      { special: "BASE_PLUS_PER_LB_ABOVE",
+        base: { lt10: 28.29, b10_50: 29.06, gt50: 29.06 },
+        perLb: 0.38, aboveLb: 1, maxLb: 50
+      }
+    ],
+    xl_50_70: [
+      { special: "BASE_PLUS_PER_LB_ABOVE",
+        base: { lt10: 42.16, b10_50: 42.93, gt50: 42.93 },
+        perLb: 0.75, aboveLb: 51, maxLb: 70
+      }
+    ],
+    xl_70_150: [
+      { special: "BASE_PLUS_PER_LB_ABOVE",
+        base: { lt10: 58.46, b10_50: 59.23, gt50: 59.23 },
+        perLb: 0.75, aboveLb: 71, maxLb: 150
+      }
+    ],
+    xl_150_plus: [
+      { special: "BASE_PLUS_PER_LB_ABOVE",
+        base: { lt10: 202.69, b10_50: 203.46, gt50: 203.46 },
+        perLb: 0.19, aboveLb: 151, maxLb: 100000
+      }
+    ]
+  },
 
-    if (special.special === "LS_3_TO_20_PER_HALF_LB") {
-      const base = special.base[bandKey];
-      const startLb = special.startLb;
-      const endLb = special.endLb;
-      const per = special.perInterval;
-      const intervalLb = special.intervalLb;
+  apparel: {
+    small_standard: [
+      { maxOz: 2,  lt10: 2.73, b10_50: 3.50, gt50: 3.50 },
+      { maxOz: 4,  lt10: 2.73, b10_50: 3.50, gt50: 3.50 },
+      { maxOz: 6,  lt10: 2.90, b10_50: 3.67, gt50: 3.67 },
+      { maxOz: 8,  lt10: 2.90, b10_50: 3.67, gt50: 3.67 },
+      { maxOz: 10, lt10: 3.22, b10_50: 3.99, gt50: 3.99 },
+      { maxOz: 12, lt10: 3.22, b10_50: 3.99, gt50: 3.99 },
+      { maxOz: 14, lt10: 3.50, b10_50: 4.27, gt50: 4.27 },
+      { maxOz: 16, lt10: 3.50, b10_50: 4.27, gt50: 4.27 },
+    ],
+    large_standard: [
+      { maxOz: 4,  lt10: 3.79, b10_50: 4.56, gt50: 4.56 },
+      { maxOz: 8,  lt10: 4.00, b10_50: 4.77, gt50: 4.77 },
+      { maxOz: 12, lt10: 4.23, b10_50: 5.00, gt50: 5.00 },
+      { maxOz: 16, lt10: 4.69, b10_50: 5.46, gt50: 5.46 },
+      { maxLb: 1.25, lt10: 5.50, b10_50: 6.27, gt50: 6.27 },
+      { maxLb: 1.5,  lt10: 5.50, b10_50: 6.27, gt50: 6.27 },
+      { maxLb: 1.75, lt10: 5.76, b10_50: 6.53, gt50: 6.53 },
+      { maxLb: 2.0,  lt10: 5.76, b10_50: 6.53, gt50: 6.53 },
+      { maxLb: 2.25, lt10: 6.27, b10_50: 7.04, gt50: 7.04 },
+      { maxLb: 2.5,  lt10: 6.27, b10_50: 7.04, gt50: 7.04 },
+      { maxLb: 2.75, lt10: 6.50, b10_50: 7.27, gt50: 7.27 },
+      { maxLb: 3.0,  lt10: 6.50, b10_50: 7.27, gt50: 7.27 },
+      { special: "LS_3_TO_20_PER_HALF_LB",
+        base: { lt10: 6.82, b10_50: 7.59, gt50: 7.59 },
+        perInterval: 0.16, intervalLb: 0.5, startLb: 3, endLb: 20
+      }
+    ],
+    small_bulky: [
+      { special: "BASE_PLUS_PER_LB_ABOVE",
+        base: { lt10: 9.88, b10_50: 10.65, gt50: 10.65 },
+        perLb: 0.38, aboveLb: 1, maxLb: 50
+      }
+    ],
+    large_bulky: [
+      { special: "BASE_PLUS_PER_LB_ABOVE",
+        base: { lt10: 9.88, b10_50: 10.65, gt50: 10.65 },
+        perLb: 0.38, aboveLb: 1, maxLb: 50
+      }
+    ],
+    xl_0_50: [
+      { special: "BASE_PLUS_PER_LB_ABOVE",
+        base: { lt10: 28.29, b10_50: 29.06, gt50: 29.06 },
+        perLb: 0.38, aboveLb: 1, maxLb: 50
+      }
+    ],
+    xl_50_70: [
+      { special: "BASE_PLUS_PER_LB_ABOVE",
+        base: { lt10: 42.16, b10_50: 42.93, gt50: 42.93 },
+        perLb: 0.75, aboveLb: 51, maxLb: 70
+      }
+    ],
+    xl_70_150: [
+      { special: "BASE_PLUS_PER_LB_ABOVE",
+        base: { lt10: 58.46, b10_50: 59.23, gt50: 59.23 },
+        perLb: 0.75, aboveLb: 71, maxLb: 150
+      }
+    ],
+    xl_150_plus: [
+      { special: "BASE_PLUS_PER_LB_ABOVE",
+        base: { lt10: 202.69, b10_50: 203.46, gt50: 203.46 },
+        perLb: 0.19, aboveLb: 151, maxLb: 100000
+      }
+    ]
+  },
 
-      const capped = Math.min(Math.max(weightLb, startLb), endLb);
-      const extraLb = Math.max(0, capped - startLb);
-      const intervals = Math.ceil(extraLb / intervalLb);
-      return base + (intervals * per);
-    }
+  danger: {
+    small_standard: [
+      { maxOz: 2,  lt10: 3.60, b10_50: 4.37, gt50: 4.37 },
+      { maxOz: 4,  lt10: 3.69, b10_50: 4.46, gt50: 4.46 },
+      { maxOz: 6,  lt10: 3.79, b10_50: 4.56, gt50: 4.56 },
+      { maxOz: 8,  lt10: 3.88, b10_50: 4.65, gt50: 4.65 },
+      { maxOz: 10, lt10: 3.99, b10_50: 4.76, gt50: 4.76 },
+      { maxOz: 12, lt10: 4.08, b10_50: 4.85, gt50: 4.85 },
+      { maxOz: 14, lt10: 4.16, b10_50: 4.93, gt50: 4.93 },
+      { maxOz: 16, lt10: 4.25, b10_50: 5.02, gt50: 5.02 },
+    ],
+    large_standard: [
+      { maxOz: 4,  lt10: 4.32, b10_50: 5.09, gt50: 5.09 },
+      { maxOz: 8,  lt10: 4.56, b10_50: 5.33, gt50: 5.33 },
+      { maxOz: 12, lt10: 4.82, b10_50: 5.59, gt50: 5.59 },
+      { maxOz: 16, lt10: 5.04, b10_50: 5.81, gt50: 5.81 },
+      { maxLb: 1.25, lt10: 5.51, b10_50: 6.28, gt50: 6.28 },
+      { maxLb: 1.5,  lt10: 5.91, b10_50: 6.68, gt50: 6.68 },
+      { maxLb: 1.75, lt10: 6.08, b10_50: 6.85, gt50: 6.85 },
+      { maxLb: 2.0,  lt10: 6.24, b10_50: 7.01, gt50: 7.01 },
+      { maxLb: 2.25, lt10: 6.33, b10_50: 7.10, gt50: 7.10 },
+      { maxLb: 2.5,  lt10: 6.53, b10_50: 7.30, gt50: 7.30 },
+      { maxLb: 2.75, lt10: 6.70, b10_50: 7.47, gt50: 7.47 },
+      { maxLb: 3.0,  lt10: 7.12, b10_50: 7.89, gt50: 7.89 },
+      { special: "LS_3_TO_20_PER_4OZ",
+        base: { lt10: 7.51, b10_50: 8.28, gt50: 8.28 },
+        perInterval: 0.08, intervalOz: 4, startLb: 3, endLb: 20
+      }
+    ],
+    small_bulky: [
+      { special: "BASE_PLUS_PER_LB_ABOVE",
+        base: { lt10: 11.12, b10_50: 11.89, gt50: 11.89 },
+        perLb: 0.38, aboveLb: 1, maxLb: 50
+      }
+    ],
+    large_bulky: [
+      { special: "BASE_PLUS_PER_LB_ABOVE",
+        base: { lt10: 11.12, b10_50: 11.89, gt50: 11.89 },
+        perLb: 0.38, aboveLb: 1, maxLb: 50
+      }
+    ],
+    xl_0_50: [
+      { special: "BASE_PLUS_PER_LB_ABOVE",
+        base: { lt10: 31.71, b10_50: 32.48, gt50: 32.48 },
+        perLb: 0.38, aboveLb: 1, maxLb: 50
+      }
+    ],
+    xl_50_70: [
+      { special: "BASE_PLUS_PER_LB_ABOVE",
+        base: { lt10: 46.66, b10_50: 47.43, gt50: 47.43 },
+        perLb: 0.75, aboveLb: 51, maxLb: 70
+      }
+    ],
+    xl_70_150: [
+      { special: "BASE_PLUS_PER_LB_ABOVE",
+        base: { lt10: 67.53, b10_50: 68.30, gt50: 68.30 },
+        perLb: 0.75, aboveLb: 71, maxLb: 150
+      }
+    ],
+    xl_150_plus: [
+      { special: "BASE_PLUS_PER_LB_ABOVE",
+        base: { lt10: 230.84, b10_50: 231.61, gt50: 231.61 },
+        perLb: 0.19, aboveLb: 151, maxLb: 100000
+      }
+    ]
+  }
+};
 
-    if (special.special === "BASE_PLUS_PER_LB_ABOVE") {
-      const base = special.base[bandKey];
-      const perLb = special.perLb;
-      const aboveLb = special.aboveLb;
-      const capMax = special.maxLb ?? Infinity;
+/* =========================================================
+   Smart paste parser: pulls first price, weight, and dims triple
+========================================================= */
+function parsePasteBlock(raw){
+  const t = String(raw||"");
+  const cleaned = t.replace(/[,]/g," ").replace(/\s+/g," ").trim();
 
-      const capped = Math.min(weightLb, capMax);
-      const wRounded = Math.ceil(capped);
-      const extra = Math.max(0, wRounded - aboveLb);
-      return base + (extra * perLb);
-    }
+  // price: $15.99 or 15.99
+  let price = 0;
+  const priceMatch = cleaned.match(/(?:\$)\s*(\d+(\.\d+)?)/) || cleaned.match(/\b(\d+(\.\d{2}))\b/);
+  if (priceMatch) price = Number(priceMatch[1]);
 
-    return null;
+  // dims: "10.90 x 6.00 x 0.83" with optional in/inches
+  let len=0,wid=0,hei=0;
+  const dimsMatch = cleaned.match(/(\d+(\.\d+)?)\s*[x×]\s*(\d+(\.\d+)?)\s*[x×]\s*(\d+(\.\d+)?)/i);
+  if (dimsMatch){
+    len = Number(dimsMatch[1]);
+    wid = Number(dimsMatch[3]);
+    hei = Number(dimsMatch[5]);
   }
 
-  // =========================
-  // Smart paste parser
-  // =========================
-  function parseSmartPaste(textRaw) {
-    const lines = textRaw.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
-    const kept = lines.filter(line => !/item\s*weight/i.test(line));
-    const text = kept.join(" ");
-
-    const lbMatch = text.match(/(\d+(\.\d+)?)\s*(lb|lbs)\b/i);
-    const ozMatch = text.match(/(\d+(\.\d+)?)\s*oz\b/i);
-
-    let lb = lbMatch ? Number(lbMatch[1]) : 0;
-    let oz = ozMatch ? Number(ozMatch[1]) : 0;
-
-    return { lb, oz, usedText: text };
-  }
-
-  document.getElementById("btnParse").addEventListener("click", () => {
-    const paste = document.getElementById("paste").value || "";
-    const parsed = parseSmartPaste(paste);
-    document.getElementById("lb").value = parsed.lb ? parsed.lb.toFixed(2) : "";
-    document.getElementById("oz").value = parsed.oz ? parsed.oz.toFixed(2) : "";
-    updateTierUI();
-
-    document.getElementById("out").textContent =
-      `Parsed:\n- Using text: ${parsed.usedText}\n- Pounds: ${parsed.lb}\n- Ounces: ${parsed.oz}\n\nNow click “Calculate Fees”.`;
-  });
-
-  // =========================
-  // UI updates
-  // =========================
-  function updateTierUI() {
-    const len = toNumber(document.getElementById("len").value);
-    const wid = toNumber(document.getElementById("wid").value);
-    const hei = toNumber(document.getElementById("hei").value);
-    const unitW = totalWeightLb();
-
-    const badge = document.getElementById("tierBadge");
-    const hint = document.getElementById("tierHint");
-
-    if (!(unitW > 0)) {
-      badge.textContent = "—";
-      hint.textContent = "Enter weight (and dimensions) to auto-detect.";
-      return;
-    }
-
-    const tier = detectTier(len, wid, hei, unitW);
-    badge.textContent = tier.label;
-    hint.textContent = tier.reason;
-  }
-
-  ["lb","oz","len","wid","hei"].forEach(id => {
-    document.getElementById(id).addEventListener("input", updateTierUI);
-  });
-  updateTierUI();
-
-  // =========================
-  // Calculate
-  // =========================
-  document.getElementById("btnCalc").addEventListener("click", () => {
-    const asin = document.getElementById("asin").value.trim();
-    const price = toNumber(document.getElementById("price").value);
-    const season = document.getElementById("season").value;
-    const ptype = document.getElementById("ptype").value;
-
-    const unitW = totalWeightLb();
-    const len = toNumber(document.getElementById("len").value);
-    const wid = toNumber(document.getElementById("wid").value);
-    const hei = toNumber(document.getElementById("hei").value);
-
-    if (!(price > 0)) {
-      document.getElementById("out").textContent = "Please enter a valid Selling Price.";
-      return;
-    }
-    if (!(unitW > 0)) {
-      document.getElementById("out").textContent = "Please enter a valid Weight (lb and/or oz).";
-      return;
-    }
-
-    const band = getPriceBand(price);
-    const bandLabel = band === "lt10" ? "<$10" : (band === "b10_50" ? "$10–$50" : ">$50");
-
-    // Tier detection based on unit weight first (fast)
-    let tier = detectTier(len, wid, hei, unitW);
-
-    // For XL 0–50 tier key in your tables, we only hit it if unit weight <=50 and classified as XL.
-    // Our detectTier uses bulky for <=50. If you want true XL_0_50 for big screens, you can:
-    // - raise bulky threshold or add a "very large dims => xl_0_50" rule.
-    // We'll add a simple rule: if oversize and longest>60 OR l+g>130 and <=50 lb => xl_0_50.
-    if (len > 0 && wid > 0 && hei > 0 && unitW <= 50) {
-      const { L, W, H } = sortDimsDesc(len, wid, hei);
-      const lpg = lengthPlusGirth(L, W, H);
-      const definitelyXL = (L > 60) || (lpg > 130);
-      if (definitelyXL) {
-        tier = { key: "xl_0_50", label: "Extra-large 0 to 50 lb", reason: "Very large oversize → XL 0–50" };
-      }
-    }
-
-    // Compute billable weight per rules
-    const bw = billableWeightLb(len, wid, hei, unitW, tier.key);
-
-    // Select table and compute fee
-    const table = FEES?.[season]?.[ptype]?.[tier.key];
-    if (!table) {
-      document.getElementById("out").textContent =
-        `Fee table not found for season="${season}", type="${ptype}", tier="${tier.key}".\n` +
-        `This build includes the pasted rate cards for peak_2025 and nonpeak_2026.\n` +
-        `If you need extra tiers, tell me which ones you want added.`;
-      return;
-    }
-
-    const fee = calcFeeFromTable(table, bw.billable, band);
-    if (fee === null) {
-      document.getElementById("out").textContent = "Could not calculate a fee from the selected table.";
-      return;
-    }
-
-    const overmax = isOvermax(len, wid, hei, tier.key);
-
-    // Update tier UI
-    document.getElementById("tierBadge").textContent = tier.label;
-    document.getElementById("tierHint").textContent = tier.reason + (overmax ? " (Overmax flagged)" : "");
-
-    const outLines = [];
-    outLines.push(`ASIN: ${asin || "(not provided)"}`);
-    outLines.push(`Season: ${season === "nonpeak_2026" ? "Non-Peak (Starting Jan 15, 2026)" : "Peak (Oct 15, 2025 – Jan 14, 2026)"}`);
-    outLines.push(`Product Type: ${ptype === "nonapparel" ? "Non-Apparel" : (ptype === "apparel" ? "Apparel" : "Dangerous goods (Hazmat)")}`);
-    outLines.push(`Price band: ${bandLabel} (Selling price: $${price.toFixed(2)})`);
-    outLines.push(`Detected tier: ${tier.label} [${tier.key}]`);
-    outLines.push("");
-
-    outLines.push(`Unit weight: ${unitW.toFixed(3)} lb (${(unitW*16).toFixed(2)} oz)`);
-    if (len > 0 && wid > 0 && hei > 0) {
-      outLines.push(`Dims: ${len} x ${wid} x ${hei} in`);
-      outLines.push(`DIM divisor: 139`);
-      if (tier.key === "small_standard" || tier.key === "xl_150_plus") {
-        outLines.push(`Dim weight: (not used for this tier)`);
-      } else {
-        outLines.push(`Dim weight (min W/H=2): ${bw.dim.toFixed(3)} lb`);
-      }
+  // weight:
+  // - prefer explicit lb/lbs
+  // - else accept "X oz" convert to lb
+  // - else accept a standalone decimal near "lbs"/"weight"/"LBS:"
+  let lb = 0;
+  const lbMatch = cleaned.match(/(\d+(\.\d+)?)\s*(lb|lbs)\b/i);
+  if (lbMatch){
+    lb = Number(lbMatch[1]);
+  } else {
+    const ozMatch = cleaned.match(/(\d+(\.\d+)?)\s*oz\b/i);
+    if (ozMatch){
+      lb = Number(ozMatch[1]) / 16;
     } else {
-      outLines.push(`Dims: (not provided)`);
+      // try "LBS: 0.08" or "Weight 0.08"
+      const near = cleaned.match(/\b(?:lbs?|weight)\s*[:=]?\s*(\d+(\.\d+)?)/i);
+      if (near) lb = Number(near[1]);
     }
+  }
 
-    outLines.push(`Billable weight: ${bw.billable.toFixed(3)} lb (used: ${bw.used})`);
-    outLines.push("");
+  return { price, lb, len, wid, hei };
+}
 
-    outLines.push(`FBA Fulfillment Fee: $${fee.toFixed(2)}`);
-    outLines.push(`Net after fulfillment fee (price - fee): $${(price - fee).toFixed(2)}`);
-    outLines.push("");
+/* =========================================================
+   UI + compute
+========================================================= */
+const el = (id)=>document.getElementById(id);
 
-    if (overmax) {
-      outLines.push(`⚠ Overmax: YES (Longest > 96" or Length+Girth > 130")`);
-      outLines.push(`Note: Overmax surcharge NOT applied (rate card not included).`);
-      outLines.push("");
-    } else {
-      outLines.push(`Overmax: No`);
-      outLines.push("");
-    }
+function setBadge(badgeEl, textEl, dotColorClass, text){
+  badgeEl.classList.remove("good","warn","bad");
+  if (dotColorClass) badgeEl.classList.add(dotColorClass);
+  textEl.textContent = text;
+}
 
-    outLines.push("Notes:");
-    outLines.push("- This calculator covers fulfillment fee only (no referral fee, storage, SIPP, low-inventory fee, etc.).");
-    outLines.push("- Tier detection uses heuristics. If you paste Amazon “Product size tiers” thresholds, we can make it exact.");
+function updateLiveBadges(){
+  const season = el("season").value;
+  const unitLb = toNumber(el("lb").value);
+  const len = toNumber(el("len").value);
+  const wid = toNumber(el("wid").value);
+  const hei = toNumber(el("hei").value);
 
-    document.getElementById("out").textContent = outLines.join("\n");
-  });
+  // Tier badge
+  if (unitLb>0 && len>0 && wid>0 && hei>0){
+    const tier = detectTierExact(season, unitLb, len, wid, hei);
+    const overmax = isOvermaxXLUpTo150(tier.key, len, wid, hei);
+
+    const cls = overmax ? "warn" : "good";
+    setBadge(el("tierBadge"), el("tierText"), cls, `Tier: ${tier.label}${overmax ? " • Overmax" : ""}`);
+  } else {
+    setBadge(el("tierBadge"), el("tierText"), "", "Tier: —");
+  }
+
+  // Weight badge
+  if (unitLb>0){
+    const tierKey = (unitLb>0 && len>0 && wid>0 && hei>0) ? detectTierExact(season, unitLb, len, wid, hei).key : "large_standard";
+    const bw = (len>0 && wid>0 && hei>0) ? billableWeightForFees(tierKey, unitLb, len, wid, hei) : { billLb: unitLb, used:"unit" };
+    const cls = (bw.used === "dim") ? "warn" : "good";
+    setBadge(el("weightBadge"), el("weightText"), cls, `Used weight: ${bw.billLb.toFixed(3)} lb (${(bw.billLb*16).toFixed(2)} oz)`);
+    el("lbHint").textContent = `Unit: ${unitLb.toFixed(4)} lb • We use ${bw.used} for fees (DIM divisor 139, min W/H=2 when applicable).`;
+  } else {
+    setBadge(el("weightBadge"), el("weightText"), "", "Used weight: —");
+    el("lbHint").textContent = "We’ll auto-calc oz + dim weight internally. No manual oz field.";
+  }
+}
+
+function calculate(){
+  const asin = el("asin").value.trim();
+  const price = toNumber(el("price").value);
+  const season = el("season").value;
+  const ptype = el("ptype").value;
+
+  const unitLb = toNumber(el("lb").value);
+  const len = toNumber(el("len").value);
+  const wid = toNumber(el("wid").value);
+  const hei = toNumber(el("hei").value);
+
+  if (!(price>0)){
+    el("out").textContent = "Please enter a valid Selling Price.";
+    el("finePrint").textContent = "";
+    return;
+  }
+  if (!(unitLb>0)){
+    el("out").textContent = "Please paste a valid Shipping Weight in pounds (lb).";
+    el("finePrint").textContent = "";
+    return;
+  }
+  if (!(len>0 && wid>0 && hei>0)){
+    el("out").textContent = "Please enter valid Dimensions (Length, Width, Height) in inches. (Tier detection requires dims.)";
+    el("finePrint").textContent = "";
+    return;
+  }
+
+  const band = getPriceBand(price);
+  const tier = detectTierExact(season, unitLb, len, wid, hei);
+  const overmax = isOvermaxXLUpTo150(tier.key, len, wid, hei);
+
+  const bw = billableWeightForFees(tier.key, unitLb, len, wid, hei);
+
+  const table = FEES?.[season]?.[ptype]?.[tier.key];
+  if (!table){
+    el("out").textContent =
+      `Fee table not found for:\n- season="${season}"\n- product type="${ptype}"\n- tier="${tier.key}"\n\n`+
+      `This build includes your pasted fee tiers for standard, bulky, and XL bands.\n`+
+      `If Amazon adds a new tier/rate card you want included, paste it and we’ll extend FEES.`;
+    el("finePrint").textContent = "";
+    return;
+  }
+
+  const fee = calcFeeFromTable(table, bw.billLb, band);
+  if (fee === null){
+    el("out").textContent = "Could not compute a fee from the table (unexpected bracket gap).";
+    el("finePrint").textContent = "";
+    return;
+  }
+
+  const dimsSorted = sortDimsDesc(len, wid, hei);
+  const lpg = lengthPlusGirth(dimsSorted.L, dimsSorted.M, dimsSorted.S);
+  const swTier = shippingWeightForTier(unitLb, len, wid, hei);
+
+  // Output
+  const seasonLabel =
+    (season==="nonpeak_2025") ? "Non-Peak (Jan 15, 2025 – Oct 14, 2025)" :
+    (season==="peak_2025") ? "Peak (Oct 15, 2025 – Jan 14, 2026)" :
+    "Non-Peak (Starting Jan 15, 2026)";
+
+  const ptypeLabel =
+    (ptype==="nonapparel") ? "Non-Apparel" : (ptype==="apparel") ? "Apparel" : "Dangerous goods (Hazmat)";
+
+  const out = [];
+  out.push(`ASIN: ${asin || "(not provided)"}`);
+  out.push(`Season: ${seasonLabel}`);
+  out.push(`Product Type: ${ptypeLabel}`);
+  out.push(`Price band: ${bandLabel(band)} (Selling price: ${money(price)})`);
+  out.push("");
+  out.push(`Dimensions (input): ${len} x ${wid} x ${hei} in`);
+  out.push(`Sorted sides: Longest=${dimsSorted.L}, Median=${dimsSorted.M}, Shortest=${dimsSorted.S}`);
+  out.push(`Length + girth: ${lpg.toFixed(2)} in`);
+  out.push("");
+  out.push(`Unit weight (input): ${unitLb.toFixed(4)} lb (${(unitLb*16).toFixed(2)} oz)`);
+  out.push(`Tier shipping weight (for tier classification): ${swTier.shipLb.toFixed(4)} lb` +
+           ` (dim=${swTier.dimLb.toFixed(4)} lb${swTier.usedMin2 ? ", min W/H=2 applied" : ""})`);
+  out.push("");
+  out.push(`Detected size tier: ${tier.label} [${tier.key}]`);
+  out.push(`Reason: ${tier.reason}`);
+  out.push("");
+  if (tier.key === "small_standard" || tier.key === "xl_150_plus"){
+    out.push(`Fee weight rule: UNIT only (per Amazon rule for this tier)`);
+  } else {
+    out.push(`Fee weight rule: max(unit, dim) (DIM divisor 139, min W/H=2)`);
+    out.push(`Dim weight (fee): ${bw.dimLb.toFixed(4)} lb`);
+  }
+  out.push(`Billable weight (fee): ${bw.billLb.toFixed(4)} lb (used: ${bw.used})`);
+  out.push("");
+  out.push(`FBA Fulfillment Fee: ${money(fee)}`);
+  out.push(`Net after fulfillment fee: ${money(price - fee)}`);
+  out.push("");
+  out.push(`Overmax flagged: ${overmax ? "YES" : "No"}`);
+  if (overmax){
+    out.push(`Note: Overmax surcharge NOT applied (rate card not included).`);
+  }
+  out.push("");
+  out.push(`Notes:`);
+  out.push(`- Fulfillment fee only (no referral/storage/SIPP/low-inventory/etc.).`);
+  out.push(`- Tier detection uses the tier thresholds you pasted (2024 defs through Jan 14, 2026; 2026 defs starting Jan 15, 2026).`);
+  out.push(`- Amazon may re-measure items; Amazon’s measurements will control final fees.`);
+
+  el("out").textContent = out.join("\n");
+  el("finePrint").textContent = overmax
+    ? "Overmax is flagged using your pasted rule: XL (up to 150 lb) with longest > 96 in OR length+girth > 130 in. Surcharge not included."
+    : "Tip: For fast pasting, you can paste a block that contains price, weight, and a “L x W x H” line and hit Parse.";
+  updateLiveBadges();
+}
+
+/* =========================================================
+   Events
+========================================================= */
+["season","ptype","lb","len","wid","hei","price"].forEach(id=>{
+  el(id).addEventListener("input", updateLiveBadges);
+  el(id).addEventListener("change", updateLiveBadges);
+});
+
+el("btnCalc").addEventListener("click", calculate);
+el("btnCalcTop").addEventListener("click", calculate);
+
+el("btnParse").addEventListener("click", ()=>{
+  const raw = el("paste").value || "";
+  const p = parsePasteBlock(raw);
+
+  // only set if found (>0) so we don't wipe user fields
+  if (p.price>0) el("price").value = p.price.toFixed(2);
+  if (p.lb>0) el("lb").value = p.lb.toFixed(4);
+  if (p.len>0 && p.wid>0 && p.hei>0){
+    el("len").value = p.len;
+    el("wid").value = p.wid;
+    el("hei").value = p.hei;
+  }
+
+  el("parseStatus").textContent = `Parsed: ${p.price?`$${p.price}`:"(no price)"} • ${p.lb?`${p.lb.toFixed(4)} lb`:"(no weight)"} • ${p.len?`${p.len}×${p.wid}×${p.hei}`:"(no dims)"}`;
+  updateLiveBadges();
+});
+
+el("btnCopy").addEventListener("click", async ()=>{
+  try{
+    await navigator.clipboard.writeText(el("out").textContent || "");
+    el("btnCopy").textContent = "Copied!";
+    setTimeout(()=>el("btnCopy").textContent="Copy", 900);
+  }catch{
+    el("btnCopy").textContent = "Copy failed";
+    setTimeout(()=>el("btnCopy").textContent="Copy", 900);
+  }
+});
+
+el("btnClear").addEventListener("click", ()=>{
+  ["asin","price","lb","len","wid","hei","paste"].forEach(id=>el(id).value="");
+  el("season").value = "nonpeak_2026";
+  el("ptype").value = "nonapparel";
+  el("parseStatus").textContent = "";
+  el("out").textContent = "Paste inputs and click “Calculate Fees”.";
+  el("finePrint").textContent = "";
+  updateLiveBadges();
+});
+
+el("btnExample").addEventListener("click", ()=>{
+  el("asin").value = "B0006VLNOA";
+  el("price").value = "15.99";
+  el("lb").value = "0.08";
+  el("len").value = "10.90";
+  el("wid").value = "6.00";
+  el("hei").value = "0.83";
+  el("season").value = "nonpeak_2025";
+  el("ptype").value = "nonapparel";
+  updateLiveBadges();
+  calculate();
+});
+
+updateLiveBadges();
 </script>
 </body>
 </html>
